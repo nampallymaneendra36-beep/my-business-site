@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-logo">P</div>
+                <h1>Welcome Back</h1>
+                <p>Sign in to your Pure Prosperity Cyber account</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('auth.login') }}" novalidate>
+                <div class="form-group">
+                    <label for="email">Email or Username</label>
+                    <input
+                        type="text"
+                        id="email"
+                        name="email"
+                        class="form-control"
+                        placeholder="Enter email or username"
+                        required
+                        autofocus
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="password-field">
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            class="form-control"
+                            placeholder="Enter your password"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full">
+                    Sign In
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Don't have an account? <a href="{{ url_for('auth.register') }}">Create one</a></p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

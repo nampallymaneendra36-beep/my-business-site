@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <h1>Dashboard</h1>
+        <p>Welcome, {{ current_user.username }}.</p>
+
+        <h2>Contact Messages</h2>
+
+        {% if messages %}
+            <div class="dashboard-messages">
+                {% for msg in messages %}
+                    <div class="message-card {% if not msg.is_read %}unread-card{% endif %}">
+                        <div class="message-top">
+                            <h3>{{ msg.subject }}</h3>
+                            {% if msg.is_read %}
+                                <span class="status-badge read-badge">Read</span>
+                            {% else %}
+                                <span class="status-badge unread-badge">Unread</span>
+                            {% endif %}
+                        </div>
+
+                        <p><strong>Name:</strong> {{ msg.name }}</p>
+                        <p><strong>Email:</strong> {{ msg.email }}</p>
+                        <p><strong>Message:</strong> {{ msg.message }}</p>
+                        <p><strong>Submitted:</strong> {{ msg.submitted_at.strftime('%d-%m-%Y %H:%M') }}</p>
+
+                        <div class="message-actions">
+                            {% if not msg.is_read %}
+                                <a href="{{ url_for('main.mark_message_read', message_id=msg.id) }}" class="btn btn-secondary">
+                                    Mark as Read
+                                </a>
+                            {% endif %}
+                            <a href="{{ url_for('main.delete_message', message_id=msg.id) }}" class="btn btn-danger">
+                                Delete
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No contact messages yet.</p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
