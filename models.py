@@ -31,3 +31,4 @@ class ContactMessage(db.Model):
     message = db.Column(db.Text, nullable=False)
     submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_read = db.Column(db.Boolean, default=False)
+    status = db.Column(db.String(30), default="New", nullable=False)

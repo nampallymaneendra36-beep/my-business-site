@@ -90,16 +90,52 @@ nav {
     display: inline-block;
     background: #111827;
     color: white;
-    padding: 12px 22px;
+    padding: 10px 18px;
     text-decoration: none;
     border: none;
     cursor: pointer;
     border-radius: 6px;
-    font-size: 16px;
+    font-size: 15px;
 }
 
 .btn:hover {
     background: #2563eb;
+}
+
+.btn-secondary {
+    background: #475569;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #334155;
+}
+
+.btn-danger {
+    background: #dc2626;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #b91c1c;
+}
+
+.btn-success {
+    background: #16a34a;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #15803d;
+}
+
+.btn-light {
+    background: #e5e7eb;
+    color: #111827;
+}
+
+.btn-light:hover {
+    background: #cbd5e1;
 }
 
 .cards {
@@ -162,6 +198,53 @@ textarea {
     margin-top: 30px;
 }
 
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin: 30px 0;
+}
+
+.stat-card {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 22px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    border-left: 5px solid #2563eb;
+}
+
+.stat-card h3 {
+    margin: 0 0 10px;
+    font-size: 16px;
+}
+
+.stat-card p {
+    margin: 0;
+    font-size: 34px;
+    font-weight: bold;
+}
+
+.filter-bar {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 25px;
+}
+
+.filter-link {
+    text-decoration: none;
+    background: #e5e7eb;
+    color: #111827;
+    padding: 10px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.active-filter {
+    background: #111827;
+    color: white;
+}
+
 .dashboard-messages {
     display: grid;
     gap: 20px;
@@ -184,7 +267,7 @@ textarea {
 .message-top {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     gap: 15px;
     margin-bottom: 15px;
 }
@@ -193,11 +276,25 @@ textarea {
     margin: 0;
 }
 
+.lead-meta {
+    color: #64748b;
+    margin: 6px 0 0;
+    font-size: 14px;
+}
+
+.badge-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
 .status-badge {
     padding: 6px 12px;
     border-radius: 20px;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: bold;
+    white-space: nowrap;
 }
 
 .read-badge {
@@ -210,6 +307,21 @@ textarea {
     color: #1d4ed8;
 }
 
+.lead-new {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.lead-progress {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.lead-closed {
+    background: #dcfce7;
+    color: #166534;
+}
+
 .message-actions {
     display: flex;
     gap: 12px;
@@ -217,24 +329,31 @@ textarea {
     flex-wrap: wrap;
 }
 
-.btn-secondary {
-    background: #475569;
-    color: white;
-}
-
-.btn-secondary:hover {
-    background: #334155;
-}
-
-.btn-danger {
-    background: #dc2626;
-    color: white;
-}
-
-.btn-danger:hover {
-    background: #b91c1c;
-}
-
 .text-center-page {
     text-align: center;
+}
+
+@media (max-width: 768px) {
+    .nav-container {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .hero h1 {
+        font-size: 36px;
+    }
+
+    .cards,
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .message-top {
+        flex-direction: column;
+    }
 }
