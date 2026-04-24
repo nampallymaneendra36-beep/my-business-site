@@ -6,7 +6,7 @@
 <section class="section">
     <div class="container">
         <h1>Admin Panel</h1>
-        <p>Manage users, leads, and customer requests.</p>
+        <p>Manage users, leads, customer requests, and AI lead analysis.</p>
 
         <div class="stats-grid">
             <div class="stat-card">
@@ -66,12 +66,29 @@
                                 {% else %}
                                     <span class="status-badge lead-closed">Closed</span>
                                 {% endif %}
+
+                                {% if msg.ai_priority == "High" %}
+                                    <span class="status-badge priority-high">AI High</span>
+                                {% elif msg.ai_priority == "Medium" %}
+                                    <span class="status-badge priority-medium">AI Medium</span>
+                                {% elif msg.ai_priority == "Low" %}
+                                    <span class="status-badge priority-low">AI Low</span>
+                                {% else %}
+                                    <span class="status-badge">AI Pending</span>
+                                {% endif %}
                             </div>
                         </div>
 
                         <p><strong>Name:</strong> {{ msg.name }}</p>
                         <p><strong>Email:</strong> <a href="mailto:{{ msg.email }}">{{ msg.email }}</a></p>
                         <p><strong>Message:</strong> {{ msg.message }}</p>
+
+                        <div class="ai-box">
+                            <h4>🤖 AI Analysis</h4>
+                            <p><strong>Priority:</strong> {{ msg.ai_priority or "Not analyzed" }}</p>
+                            <p><strong>Category:</strong> {{ msg.ai_category or "Not analyzed" }}</p>
+                            <p><strong>Action:</strong> {{ msg.ai_action or "Not analyzed" }}</p>
+                        </div>
 
                         <div class="message-actions">
                             {% if not msg.is_read %}
