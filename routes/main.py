@@ -1,8 +1,7 @@
-import os
 from flask import Blueprint, render_template, abort, redirect, url_for, flash
 from flask_login import login_required, current_user
 from extensions import db
-from models import ContactMessage, User
+from models import ContactMessage
 
 main_bp = Blueprint("main", __name__)
 
@@ -59,32 +58,3 @@ def delete_message(message_id):
 
     flash("Message deleted successfully.", "success")
     return redirect(url_for("main.dashboard"))
-
-
-@main_bp.route("/create-admin")
-def create_admin():
-    admin_email = "admin@ppcyber.com"
-    admin_username = "admin"
-    admin_password = os.environ.get("ADMIN_PASSWORD", "Admin@123")
-
-    admin = User.query.filter_by(email=admin_email).first()
-
-    if admin:
-        admin.username = admin_username
-        admin.is_admin = True
-        admin.set_password(admin_password)
-        db.session.commit()
-        return "Admin already existed. Password updated successfully."
-
-    admin = User(
-        username=admin_username,
-        email=admin_email,
-        is_admin=True
-    )
-
-    admin.set_password(admin_password)
-
-    db.session.add(admin)
-    db.session.commit()
-
-    return "Admin created successfully."
