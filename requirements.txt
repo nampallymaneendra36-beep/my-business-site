@@ -7,3 +7,4 @@ Werkzeug
 email-validator
 Flask-Mail
 SQLAlchemy
+gunicorn
