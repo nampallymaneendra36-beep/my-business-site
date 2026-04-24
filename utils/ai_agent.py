@@ -1,14 +1,17 @@
 def analyze_lead(subject, message):
+    subject = subject or ""
+    message = message or ""
+
     text = f"{subject} {message}".lower()
 
     high_keywords = [
         "hacked", "breach", "data leak", "ransomware", "malware",
-        "unauthorized access", "attack", "compromised"
+        "unauthorized access", "attack", "compromised", "urgent"
     ]
 
     medium_keywords = [
         "vulnerability", "bug", "security issue",
-        "login issue", "xss", "sql injection"
+        "login issue", "xss", "sql injection", "phishing"
     ]
 
     if any(word in text for word in high_keywords):
@@ -21,10 +24,10 @@ def analyze_lead(subject, message):
         priority = "Low"
         action = "Normal follow-up"
 
-    if "hacked" in text or "breach" in text:
+    if "hacked" in text or "breach" in text or "compromised" in text:
         category = "Incident Response"
-    elif "vapt" in text or "testing" in text:
-        category = "VAPT"
+    elif "vapt" in text or "testing" in text or "vulnerability" in text:
+        category = "VAPT / Web Security Testing"
     else:
         category = "General Inquiry"
 
