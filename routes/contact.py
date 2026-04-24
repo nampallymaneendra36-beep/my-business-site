@@ -1,7 +1,8 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for
-from flask_mail import Message
+from flask import Blueprint, render_template, request, flash
+from flask_login import current_user
 from extensions import db, mail
 from models import ContactMessage
+from flask_mail import Message
 
 contact_bp = Blueprint("contact", __name__)
 
@@ -9,84 +10,69 @@ contact_bp = Blueprint("contact", __name__)
 @contact_bp.route("/contact", methods=["GET", "POST"])
 def contact():
     if request.method == "POST":
-        name = request.form.get("name", "").strip()
-        email = request.form.get("email", "").strip()
-        subject = request.form.get("subject", "").strip()
-        message = request.form.get("message", "").strip()
+        name = request.form.get("name")
+        email = request.form.get("email")
+        subject = request.form.get("subject")
+        message_text = request.form.get("message")
 
-        if not name or not email or not subject or not message:
+        if not name or not email or not subject or not message_text:
             flash("All fields are required.", "error")
             return render_template("contact.html")
 
-        new_message = ContactMessage(
+        # ✅ Save message with user_id
+        message = ContactMessage(
             name=name,
             email=email,
             subject=subject,
-            message=message
+            message=message_text,
+            user_id=current_user.id if current_user.is_authenticated else None
         )
 
-        db.session.add(new_message)
+        db.session.add(message)
         db.session.commit()
 
-        admin_email_ok = False
-        customer_email_ok = False
-
+        # ADMIN EMAIL
         try:
-            admin_mail = Message(
-                subject=f"New Contact Form: {subject}",
-                sender="pureprosperitycyber@gmail.com",
-                recipients=["pureprosperitycyber@gmail.com"],
-                reply_to=email,
-                body=f"""New contact message received.
+            admin_msg = Message(
+                subject=f"🚨 New Lead: {subject}",
+                recipients=["admin@ppcyber.com"]
+            )
+
+            admin_msg.body = f"""
+New Lead Received!
 
 Name: {name}
 Email: {email}
 Subject: {subject}
 
 Message:
-{message}
+{message_text}
 """
-            )
-            mail.send(admin_mail)
-            admin_email_ok = True
-            print("ADMIN EMAIL SENT SUCCESSFULLY")
-        except Exception as e:
-            print("ADMIN EMAIL ERROR:", str(e))
+            mail.send(admin_msg)
 
+        except Exception as e:
+            print("ADMIN EMAIL ERROR:", e)
+
+        # USER EMAIL
         try:
-            customer_mail = Message(
-                subject="We received your message | Pure Prosperity Cyber",
-                sender="pureprosperitycyber@gmail.com",
-                recipients=[email],
-                body=f"""Hi {name},
-
-Thank you for contacting Pure Prosperity Cyber.
-
-We have received your message regarding:
-"{subject}"
-
-Our team will review your request and get back to you as soon as possible.
-
-Best regards,
-Pure Prosperity Cyber
-pureprosperitycyber@gmail.com
-"""
+            user_msg = Message(
+                subject="We received your request",
+                recipients=[email]
             )
-            mail.send(customer_mail)
-            customer_email_ok = True
-            print("CUSTOMER EMAIL SENT SUCCESSFULLY")
+
+            user_msg.body = f"""
+Hi {name},
+
+We received your request and will respond soon.
+
+Your Message:
+{message_text}
+"""
+            mail.send(user_msg)
+
         except Exception as e:
-            print("CUSTOMER EMAIL ERROR:", str(e))
+            print("USER EMAIL ERROR:", e)
 
-        if admin_email_ok and customer_email_ok:
-            flash("Message sent successfully! Confirmation email also sent.", "success")
-        elif admin_email_ok and not customer_email_ok:
-            flash("Message saved and admin email sent, but customer confirmation email failed.", "error")
-        elif not admin_email_ok and customer_email_ok:
-            flash("Message saved and customer confirmation email sent, but admin email failed.", "error")
-        else:
-            flash("Message saved, but both emails failed.", "error")
-
-        return redirect(url_for("contact.contact"))
+        flash("Message sent successfully!", "success")
 
     return render_template("contact.html")

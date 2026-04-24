@@ -29,6 +29,11 @@ class ContactMessage(db.Model):
     email = db.Column(db.String(120), nullable=False)
     subject = db.Column(db.String(200), nullable=False)
     message = db.Column(db.Text, nullable=False)
+
     submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_read = db.Column(db.Boolean, default=False)
     status = db.Column(db.String(30), default="New", nullable=False)
+
+    # ✅ NEW (Client Panel)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    user = db.relationship("User", backref="messages")

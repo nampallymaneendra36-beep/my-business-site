@@ -140,3 +140,16 @@ def admin_db_upgrade():
     except Exception as e:
         db.session.rollback()
         return f"Database upgrade failed: {str(e)}", 500
+    
+    from flask_login import login_required, current_user
+from models import ContactMessage
+
+
+@main_bp.route("/my-requests")
+@login_required
+def my_requests():
+    messages = ContactMessage.query.filter_by(user_id=current_user.id).order_by(
+        ContactMessage.submitted_at.desc()
+    ).all()
+
+    return render_template("my_requests.html", messages=messages)

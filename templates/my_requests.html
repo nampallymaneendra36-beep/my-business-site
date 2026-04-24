@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}My Requests{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>My Requests</h1>
+
+    {% if messages %}
+        {% for msg in messages %}
+            <div class="card">
+                <h3>{{ msg.subject }}</h3>
+                <p>{{ msg.message }}</p>
+
+                <p>
+                    <strong>Status:</strong>
+                    {% if msg.status == "New" %}
+                        🟡 New
+                    {% elif msg.status == "In Progress" %}
+                        🔵 In Progress
+                    {% else %}
+                        🟢 Closed
+                    {% endif %}
+                </p>
+
+                <p><strong>Date:</strong> {{ msg.submitted_at }}</p>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No requests found.</p>
+    {% endif %}
+</div>
+{% endblock %}
