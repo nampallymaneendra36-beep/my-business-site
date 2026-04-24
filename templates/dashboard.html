@@ -1,18 +1,97 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard{% endblock %}
+{% block title %}Admin Dashboard{% endblock %}
 
 {% block content %}
 <section class="section">
     <div class="container">
-        <h1>Welcome, {{ current_user.username }}</h1>
-        <p>You are logged in successfully.</p>
+        <h1>Admin Panel</h1>
+        <p>Manage users, leads, and customer requests.</p>
 
-        <div class="card">
-            <h3>Quick Actions</h3>
-            <p><a href="{{ url_for('main.my_requests') }}">View My Requests</a></p>
-            <p><a href="{{ url_for('contact.contact') }}">Submit New Request</a></p>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Users</h3>
+                <p>{{ total_users }}</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>Total Leads</h3>
+                <p>{{ total_leads }}</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>New Leads</h3>
+                <p>{{ new_leads }}</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>In Progress</h3>
+                <p>{{ progress_leads }}</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>Closed</h3>
+                <p>{{ closed_leads }}</p>
+            </div>
         </div>
+
+        <div class="filter-bar">
+            <a class="filter-link {% if status_filter == 'All' %}active-filter{% endif %}" href="{{ url_for('main.dashboard') }}">All</a>
+            <a class="filter-link {% if status_filter == 'New' %}active-filter{% endif %}" href="{{ url_for('main.dashboard', status='New') }}">New</a>
+            <a class="filter-link {% if status_filter == 'In Progress' %}active-filter{% endif %}" href="{{ url_for('main.dashboard', status='In Progress') }}">In Progress</a>
+            <a class="filter-link {% if status_filter == 'Closed' %}active-filter{% endif %}" href="{{ url_for('main.dashboard', status='Closed') }}">Closed</a>
+        </div>
+
+        {% if messages %}
+            <div class="dashboard-messages">
+                {% for msg in messages %}
+                    <div class="message-card {% if not msg.is_read %}unread-card{% endif %}">
+                        <div class="message-top">
+                            <div>
+                                <h3>{{ msg.subject }}</h3>
+                                <p class="lead-meta">{{ msg.submitted_at.strftime('%d-%m-%Y %H:%M') }}</p>
+                            </div>
+
+                            <div class="badge-group">
+                                {% if msg.is_read %}
+                                    <span class="status-badge read-badge">Read</span>
+                                {% else %}
+                                    <span class="status-badge unread-badge">Unread</span>
+                                {% endif %}
+
+                                {% if msg.status == "New" %}
+                                    <span class="status-badge lead-new">New</span>
+                                {% elif msg.status == "In Progress" %}
+                                    <span class="status-badge lead-progress">In Progress</span>
+                                {% else %}
+                                    <span class="status-badge lead-closed">Closed</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <p><strong>Name:</strong> {{ msg.name }}</p>
+                        <p><strong>Email:</strong> <a href="mailto:{{ msg.email }}">{{ msg.email }}</a></p>
+                        <p><strong>Message:</strong> {{ msg.message }}</p>
+
+                        <div class="message-actions">
+                            {% if not msg.is_read %}
+                                <a href="{{ url_for('main.mark_lead_read', lead_id=msg.id) }}" class="btn btn-secondary">Mark Read</a>
+                            {% endif %}
+
+                            <a href="{{ url_for('main.update_lead_status', lead_id=msg.id, status='new') }}" class="btn btn-light">New</a>
+
+                            <a href="{{ url_for('main.update_lead_status', lead_id=msg.id, status='progress') }}" class="btn btn-secondary">In Progress</a>
+
+                            <a href="{{ url_for('main.update_lead_status', lead_id=msg.id, status='closed') }}" class="btn btn-success">Closed</a>
+
+                            <a href="{{ url_for('main.delete_lead', lead_id=msg.id) }}" class="btn btn-danger">Delete</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No leads found.</p>
+        {% endif %}
     </div>
 </section>
 {% endblock %}
