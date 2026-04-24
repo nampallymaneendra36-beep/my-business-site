@@ -1,5 +1,8 @@
-from flask import Blueprint, render_template
+import os
+from flask import Blueprint, render_template, abort, request
 from flask_login import login_required, current_user
+from sqlalchemy import text
+from extensions import db
 from models import ContactMessage
 
 main_bp = Blueprint("main", __name__)
@@ -35,3 +38,34 @@ def my_requests():
     ).all()
 
     return render_template("my_requests.html", messages=messages)
+
+
+@main_bp.route("/admin-db-upgrade")
+def admin_db_upgrade():
+    token = request.args.get("token")
+    expected_token = os.environ.get("ADMIN_SETUP_TOKEN")
+
+    if not expected_token or token != expected_token:
+        abort(403)
+
+    try:
+        db.session.execute(
+            text(
+                "ALTER TABLE contact_messages "
+                "ADD COLUMN IF NOT EXISTS status VARCHAR(30) DEFAULT 'New' NOT NULL"
+            )
+        )
+
+        db.session.execute(
+            text(
+                "ALTER TABLE contact_messages "
+                "ADD COLUMN IF NOT EXISTS user_id INTEGER"
+            )
+        )
+
+        db.session.commit()
+        return "Database upgraded successfully."
+
+    except Exception as e:
+        db.session.rollback()
+        return f"Database upgrade failed: {str(e)}", 500
