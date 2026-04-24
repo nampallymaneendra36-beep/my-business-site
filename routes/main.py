@@ -31,7 +31,6 @@ def dashboard():
         return redirect(url_for("main.my_requests"))
 
     status_filter = request.args.get("status", "All")
-
     query = ContactMessage.query.order_by(ContactMessage.submitted_at.desc())
 
     if status_filter in ["New", "In Progress", "Closed"]:
@@ -39,21 +38,15 @@ def dashboard():
 
     messages = query.all()
 
-    total_users = User.query.count()
-    total_leads = ContactMessage.query.count()
-    new_leads = ContactMessage.query.filter_by(status="New").count()
-    progress_leads = ContactMessage.query.filter_by(status="In Progress").count()
-    closed_leads = ContactMessage.query.filter_by(status="Closed").count()
-
     return render_template(
         "dashboard.html",
         messages=messages,
         status_filter=status_filter,
-        total_users=total_users,
-        total_leads=total_leads,
-        new_leads=new_leads,
-        progress_leads=progress_leads,
-        closed_leads=closed_leads
+        total_users=User.query.count(),
+        total_leads=ContactMessage.query.count(),
+        new_leads=ContactMessage.query.filter_by(status="New").count(),
+        progress_leads=ContactMessage.query.filter_by(status="In Progress").count(),
+        closed_leads=ContactMessage.query.filter_by(status="Closed").count()
     )
 
 
@@ -128,19 +121,11 @@ def admin_db_upgrade():
         abort(403)
 
     try:
-        db.session.execute(
-            text(
-                "ALTER TABLE contact_messages "
-                "ADD COLUMN IF NOT EXISTS status VARCHAR(30) DEFAULT 'New' NOT NULL"
-            )
-        )
-
-        db.session.execute(
-            text(
-                "ALTER TABLE contact_messages "
-                "ADD COLUMN IF NOT EXISTS user_id INTEGER"
-            )
-        )
+        db.session.execute(text("ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'New'"))
+        db.session.execute(text("ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS user_id INTEGER"))
+        db.session.execute(text("ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS ai_priority VARCHAR(50)"))
+        db.session.execute(text("ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS ai_category VARCHAR(100)"))
+        db.session.execute(text("ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS ai_action VARCHAR(200)"))
 
         db.session.commit()
         return "Database upgraded successfully."
