@@ -1,8 +1,8 @@
-from flask import Blueprint, render_template, request, flash
+from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import current_user
+from flask_mail import Message
 from extensions import db, mail
 from models import ContactMessage
-from flask_mail import Message
 
 contact_bp = Blueprint("contact", __name__)
 
@@ -10,17 +10,16 @@ contact_bp = Blueprint("contact", __name__)
 @contact_bp.route("/contact", methods=["GET", "POST"])
 def contact():
     if request.method == "POST":
-        name = request.form.get("name")
-        email = request.form.get("email")
-        subject = request.form.get("subject")
-        message_text = request.form.get("message")
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip()
+        subject = request.form.get("subject", "").strip()
+        message_text = request.form.get("message", "").strip()
 
         if not name or not email or not subject or not message_text:
             flash("All fields are required.", "error")
             return render_template("contact.html")
 
-        # ✅ Save message with user_id
-        message = ContactMessage(
+        lead = ContactMessage(
             name=name,
             email=email,
             subject=subject,
@@ -28,18 +27,15 @@ def contact():
             user_id=current_user.id if current_user.is_authenticated else None
         )
 
-        db.session.add(message)
+        db.session.add(lead)
         db.session.commit()
 
-        # ADMIN EMAIL
         try:
-            admin_msg = Message(
+            admin_email = Message(
                 subject=f"🚨 New Lead: {subject}",
-                recipients=["admin@ppcyber.com"]
-            )
-
-            admin_msg.body = f"""
-New Lead Received!
+                recipients=["pureprosperitycyber@gmail.com"],
+                reply_to=email,
+                body=f"""New lead received.
 
 Name: {name}
 Email: {email}
@@ -47,32 +43,40 @@ Subject: {subject}
 
 Message:
 {message_text}
-"""
-            mail.send(admin_msg)
 
+View dashboard:
+https://my-business-site-1gei.onrender.com/dashboard
+"""
+            )
+            mail.send(admin_email)
+            print("ADMIN EMAIL SENT")
         except Exception as e:
             print("ADMIN EMAIL ERROR:", e)
 
-        # USER EMAIL
         try:
-            user_msg = Message(
-                subject="We received your request",
-                recipients=[email]
-            )
+            customer_email = Message(
+                subject="We received your request | Pure Prosperity Cyber",
+                recipients=[email],
+                body=f"""Hi {name},
 
-            user_msg.body = f"""
-Hi {name},
+Thank you for contacting Pure Prosperity Cyber.
 
-We received your request and will respond soon.
+We received your request regarding:
+{subject}
 
-Your Message:
-{message_text}
+Our team will review it and get back to you soon.
+
+Best regards,
+Pure Prosperity Cyber
+pureprosperitycyber@gmail.com
 """
-            mail.send(user_msg)
-
+            )
+            mail.send(customer_email)
+            print("CUSTOMER EMAIL SENT")
         except Exception as e:
-            print("USER EMAIL ERROR:", e)
+            print("CUSTOMER EMAIL ERROR:", e)
 
-        flash("Message sent successfully!", "success")
+        flash("Message sent successfully.", "success")
+        return redirect(url_for("contact.contact"))
 
     return render_template("contact.html")

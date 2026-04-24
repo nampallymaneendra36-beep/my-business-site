@@ -1,9 +1,10 @@
+import os
 from flask import Flask, render_template
 from flask_login import LoginManager
 from config import Config
 from extensions import db, mail
 from models import User
-import os
+
 
 def create_app():
     app = Flask(__name__)
