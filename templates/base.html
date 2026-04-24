@@ -20,6 +20,10 @@
 
                 {% if current_user.is_authenticated %}
                     <li><a href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
+
+                    <!-- ✅ NEW FEATURE -->
+                    <li><a href="{{ url_for('main.my_requests') }}">My Requests</a></li>
+
                     <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
                 {% else %}
                     <li><a href="{{ url_for('auth.login') }}">Login</a></li>
