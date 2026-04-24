@@ -8,3 +8,4 @@ email-validator
 Flask-Mail
 SQLAlchemy
 gunicorn
+psycopg2-binary
