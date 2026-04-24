@@ -3,7 +3,7 @@ from flask_login import LoginManager
 from config import Config
 from extensions import db, mail
 from models import User
-
+import os
 
 def create_app():
     app = Flask(__name__)
@@ -51,5 +51,5 @@ def create_app():
 app = create_app()
 
 if __name__ == "__main__":
-    print("STARTING FLASK APP...")
-    app.run(debug=app.config["FLASK_DEBUG"])
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=app.config["FLASK_DEBUG"])

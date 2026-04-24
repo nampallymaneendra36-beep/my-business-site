@@ -5,7 +5,6 @@ from models import User
 ADMIN_EMAIL = "admin@ppcyber.com"
 NEW_PASSWORD = "Sannapulahimasri@040799"
 
-
 with app.app_context():
     user = User.query.filter_by(email=ADMIN_EMAIL).first()
 
@@ -14,4 +13,9 @@ with app.app_context():
     else:
         user.set_password(NEW_PASSWORD)
         db.session.commit()
-        print("Admin password updated successfully.")
+
+        if user.check_password(NEW_PASSWORD):
+            print("Admin password updated successfully.")
+            print("PASSWORD VERIFIED SUCCESSFULLY")
+        else:
+            print("Password update failed.")

