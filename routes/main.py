@@ -2,7 +2,6 @@ import os
 from flask import Blueprint, render_template, abort, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from sqlalchemy import text
-from werkzeug.security import generate_password_hash
 from extensions import db
 from models import ContactMessage, User
 
@@ -135,30 +134,3 @@ def admin_db_upgrade():
     except Exception as e:
         db.session.rollback()
         return f"Database upgrade failed: {str(e)}", 500
-
-
-@main_bp.route("/admin-reset-password")
-def admin_reset_password():
-    token = request.args.get("token")
-
-    if token != "ppc-reset-2026":
-        abort(403)
-
-    user = User.query.filter_by(email="nampallymaneendra36@gmail.com").first()
-
-    if not user:
-        user = User(
-            username="admin",
-            email="nampallymaneendra36@gmail.com",
-            is_admin=True
-        )
-        user.set_password("Admin@123")
-        db.session.add(user)
-    else:
-        user.username = "admin"
-        user.is_admin = True
-        user.set_password("Admin@123")
-
-    db.session.commit()
-
-    return "Password reset successfully on server."
