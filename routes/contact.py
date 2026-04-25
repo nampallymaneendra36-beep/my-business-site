@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import current_user
-from extensions import db, mail
+from extensions import db
 from models import ContactMessage
 from utils.ai_agent import analyze_lead
 
@@ -10,12 +10,15 @@ contact_bp = Blueprint("contact", __name__)
 @contact_bp.route("/contact", methods=["GET", "POST"])
 def contact():
     if request.method == "POST":
-        name = request.form.get("name")
-        email = request.form.get("email")
-        subject = request.form.get("subject")
-        message_text = request.form.get("message")
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip()
+        subject = request.form.get("subject", "").strip()
+        message_text = request.form.get("message", "").strip()
 
-        # ✅ AI analysis
+        if not name or not email or not subject or not message_text:
+            flash("All fields are required.", "error")
+            return render_template("contact.html")
+
         ai = analyze_lead(subject, message_text)
 
         new_message = ContactMessage(
@@ -32,14 +35,7 @@ def contact():
         db.session.add(new_message)
         db.session.commit()
 
-        # ❌ TEMP: disable email to avoid crash
-        try:
-            if mail:
-                print("Mail configured")
-        except Exception as e:
-            print("MAIL ERROR:", e)
-
-        flash("Message sent successfully!", "success")
+        flash("Message sent successfully.", "success")
         return redirect(url_for("contact.contact"))
 
     return render_template("contact.html")
