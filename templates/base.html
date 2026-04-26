@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pure Prosperity Cyber</title>
+    <title>{% block title %}Pure Prosperity Cyber{% endblock %}</title>
 
+    <!-- CSS LINK (IMPORTANT) -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
@@ -28,7 +29,7 @@
     </ul>
 </nav>
 
-<!-- PAGE CONTENT -->
+<!-- CONTENT -->
 {% block content %}{% endblock %}
 
 </body>
