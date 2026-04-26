@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="container">
+        <h1>Secure Growth for Modern Businesses</h1>
+        <p>
+            Pure Prosperity Cyber helps startups and businesses improve security
+            through practical cybersecurity services, testing, and consulting.
+        </p>
+        <a href="{{ url_for('main.services') }}" class="btn">Explore Services</a>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <h2>What We Do</h2>
+        <div class="cards">
+            <div class="card">
+                <h3>Vulnerability Assessment</h3>
+                <p>Identify security weaknesses before attackers do.</p>
+            </div>
+
+            <div class="card">
+                <h3>Web App Security Testing</h3>
+                <p>Test websites and applications for real-world risks.</p>
+            </div>
+
+            <div class="card">
+                <h3>Security Consulting</h3>
+                <p>Get clear guidance to improve your business security posture.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section light-section">
+    <div class="container">
+        <h2>Why Choose Us</h2>
+        <p>
+            We focus on practical security, business needs, and simple solutions
+            that actually help organizations move safely and confidently.
+        </p>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Contact{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <h1>Contact Pure Prosperity Cyber</h1>
+
+        <form method="POST" action="{{ url_for('contact.contact') }}">
+            <p>
+                <input type="text" name="name" placeholder="Your Name" required>
+            </p>
+
+            <p>
+                <input type="email" name="email" placeholder="Your Email" required>
+            </p>
+
+            <p>
+                <input type="text" name="subject" placeholder="Subject" required>
+            </p>
+
+            <p>
+                <textarea name="message" rows="6" placeholder="Tell us about your requirement" required></textarea>
+            </p>
+
+            <button type="submit" class="btn">Send Message</button>
+        </form>
+    </div>
+</section>
+{% endblock %}

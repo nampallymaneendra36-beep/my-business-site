@@ -5,6 +5,8 @@ from extensions import db
 
 
 class User(UserMixin, db.Model):
+    __tablename__ = "users"
+
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80))
     email = db.Column(db.String(120))
@@ -19,6 +21,8 @@ class User(UserMixin, db.Model):
 
 
 class ContactMessage(db.Model):
+    __tablename__ = "contact_messages"
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
     email = db.Column(db.String(120))
@@ -30,9 +34,7 @@ class ContactMessage(db.Model):
 
     user_id = db.Column(db.Integer)
 
-    # ✅ AI fields
+    # AI fields
     ai_priority = db.Column(db.String(50))
     ai_category = db.Column(db.String(100))
     ai_action = db.Column(db.String(200))
-
-    

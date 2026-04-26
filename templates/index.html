@@ -1,48 +1,67 @@
 {% extends "base.html" %}
 
-{% block title %}Home{% endblock %}
-
 {% block content %}
+
+<!-- HERO SECTION -->
 <section class="hero">
-    <div class="container">
-        <h1>Secure Growth for Modern Businesses</h1>
-        <p>
-            Pure Prosperity Cyber helps startups and businesses improve security
-            through practical cybersecurity services, testing, and consulting.
-        </p>
-        <a href="{{ url_for('main.services') }}" class="btn">Explore Services</a>
+    <div class="hero-content">
+        <h1>Pure Prosperity Cyber</h1>
+        <h2>Advanced Cybersecurity Solutions</h2>
+        <p>Protecting startups and enterprises from modern cyber threats.</p>
+        <a href="/contact" class="btn-primary">Book Security Audit</a>
     </div>
 </section>
 
-<section class="section">
-    <div class="container">
-        <h2>What We Do</h2>
-        <div class="cards">
-            <div class="card">
-                <h3>Vulnerability Assessment</h3>
-                <p>Identify security weaknesses before attackers do.</p>
-            </div>
+<!-- SERVICES -->
+<section class="services">
+    <h2>Our Services</h2>
 
-            <div class="card">
-                <h3>Web App Security Testing</h3>
-                <p>Test websites and applications for real-world risks.</p>
-            </div>
+    <div class="service-container">
 
-            <div class="card">
-                <h3>Security Consulting</h3>
-                <p>Get clear guidance to improve your business security posture.</p>
-            </div>
+        <div class="service-card">
+            <h3>Penetration Testing</h3>
+            <p>Identify vulnerabilities before attackers exploit them.</p>
+        </div>
+
+        <div class="service-card">
+            <h3>Security Operations (SOC)</h3>
+            <p>24/7 monitoring, detection, and incident response.</p>
+        </div>
+
+        <div class="service-card">
+            <h3>Web Application Firewall</h3>
+            <p>Real-time protection against web-based attacks.</p>
+        </div>
+
+    </div>
+</section>
+
+<!-- WHY US -->
+<section class="why-us">
+    <h2>Why Choose Us</h2>
+
+    <div class="why-container">
+        <div class="why-box">
+            <h3>Expert Team</h3>
+            <p>Experienced cybersecurity professionals.</p>
+        </div>
+
+        <div class="why-box">
+            <h3>Proactive Security</h3>
+            <p>We prevent attacks before they happen.</p>
+        </div>
+
+        <div class="why-box">
+            <h3>Custom Solutions</h3>
+            <p>Tailored security for your business needs.</p>
         </div>
     </div>
 </section>
 
-<section class="section light-section">
-    <div class="container">
-        <h2>Why Choose Us</h2>
-        <p>
-            We focus on practical security, business needs, and simple solutions
-            that actually help organizations move safely and confidently.
-        </p>
-    </div>
+<!-- CTA -->
+<section class="cta">
+    <h2>Ready to Secure Your Business?</h2>
+    <a href="/contact" class="btn-primary">Get Started</a>
 </section>
+
 {% endblock %}
