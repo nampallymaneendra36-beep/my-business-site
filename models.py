@@ -24,17 +24,19 @@ class ContactMessage(db.Model):
     __tablename__ = "contact_messages"
 
     id = db.Column(db.Integer, primary_key=True)
+
     name = db.Column(db.String(100))
     email = db.Column(db.String(120))
     subject = db.Column(db.String(200))
     message = db.Column(db.Text)
 
     status = db.Column(db.String(50), default="New")
+    is_read = db.Column(db.Boolean, default=False)
+
     submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     user_id = db.Column(db.Integer)
 
-    # AI fields
     ai_priority = db.Column(db.String(50))
     ai_category = db.Column(db.String(100))
     ai_action = db.Column(db.String(200))

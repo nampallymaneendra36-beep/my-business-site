@@ -4,32 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Pure Prosperity Cyber{% endblock %}</title>
-
-    <!-- CSS LINK (IMPORTANT) -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-
 <body>
 
-<!-- NAVBAR -->
 <nav class="navbar">
     <div class="logo">Pure Prosperity Cyber</div>
 
     <ul class="nav-links">
-        <li><a href="/">Home</a></li>
-        <li><a href="/services">Services</a></li>
-        <li><a href="/contact">Contact</a></li>
+        <li><a href="{{ url_for('main.index') }}">Home</a></li>
+        <li><a href="{{ url_for('main.services') }}">Services</a></li>
+        <li><a href="{{ url_for('contact.contact') }}">Contact</a></li>
 
-        {% if session.get('user_id') %}
-            <li><a href="/dashboard">Dashboard</a></li>
-            <li><a href="/logout">Logout</a></li>
+        {% if current_user.is_authenticated %}
+            <li><a href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
+            <li><a href="{{ url_for('main.my_requests') }}">My Requests</a></li>
+            <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
         {% else %}
-            <li><a href="/login">Login</a></li>
+            <li><a href="{{ url_for('auth.login') }}">Login</a></li>
         {% endif %}
     </ul>
 </nav>
 
-<!-- CONTENT -->
 {% block content %}{% endblock %}
 
 </body>

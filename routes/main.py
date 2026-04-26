@@ -32,22 +32,38 @@ def dashboard():
 
     status_filter = request.args.get("status", "All")
 
-    query = ContactMessage.query.order_by(ContactMessage.submitted_at.desc())
+    query = ContactMessage.query
 
     if status_filter in ["New", "In Progress", "Closed"]:
         query = query.filter_by(status=status_filter)
 
+    query = query.order_by(
+        db.case(
+            (ContactMessage.ai_priority == "High", 1),
+            (ContactMessage.ai_priority == "Medium", 2),
+            (ContactMessage.ai_priority == "Low", 3),
+            else_=4
+        ),
+        ContactMessage.submitted_at.desc()
+    )
+
     messages = query.all()
+
+    total_users = User.query.count()
+    total_leads = ContactMessage.query.count()
+    new_leads = ContactMessage.query.filter(ContactMessage.status == "New").count()
+    progress_leads = ContactMessage.query.filter(ContactMessage.status == "In Progress").count()
+    closed_leads = ContactMessage.query.filter(ContactMessage.status == "Closed").count()
 
     return render_template(
         "dashboard.html",
         messages=messages,
         status_filter=status_filter,
-        total_users=User.query.count(),
-        total_leads=ContactMessage.query.count(),
-        new_leads=ContactMessage.query.filter_by(status="New").count(),
-        progress_leads=ContactMessage.query.filter_by(status="In Progress").count(),
-        closed_leads=ContactMessage.query.filter_by(status="Closed").count()
+        total_users=total_users,
+        total_leads=total_leads,
+        new_leads=new_leads,
+        progress_leads=progress_leads,
+        closed_leads=closed_leads
     )
 
 
@@ -59,6 +75,20 @@ def my_requests():
     ).all()
 
     return render_template("my_requests.html", messages=messages)
+
+
+@main_bp.route("/lead/<int:lead_id>/read")
+@login_required
+def mark_lead_read(lead_id):
+    if not current_user.is_admin:
+        abort(403)
+
+    lead = ContactMessage.query.get_or_404(lead_id)
+    lead.is_read = True
+    db.session.commit()
+
+    flash("Lead marked as read.", "success")
+    return redirect(url_for("main.dashboard"))
 
 
 @main_bp.route("/lead/<int:lead_id>/status/<status>")
@@ -85,20 +115,6 @@ def update_lead_status(lead_id, status):
     return redirect(url_for("main.dashboard"))
 
 
-@main_bp.route("/lead/<int:lead_id>/read")
-@login_required
-def mark_lead_read(lead_id):
-    if not current_user.is_admin:
-        abort(403)
-
-    lead = ContactMessage.query.get_or_404(lead_id)
-    lead.is_read = True
-    db.session.commit()
-
-    flash("Lead marked as read.", "success")
-    return redirect(url_for("main.dashboard"))
-
-
 @main_bp.route("/lead/<int:lead_id>/delete")
 @login_required
 def delete_lead(lead_id):
@@ -122,11 +138,12 @@ def admin_db_upgrade():
         abort(403)
 
     try:
-        db.session.execute(text("ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'New'"))
-        db.session.execute(text("ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS user_id INTEGER"))
-        db.session.execute(text("ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS ai_priority VARCHAR(50)"))
-        db.session.execute(text("ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS ai_category VARCHAR(100)"))
-        db.session.execute(text("ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS ai_action VARCHAR(200)"))
+        db.session.execute(text("ALTER TABLE contact_messages ADD COLUMN is_read BOOLEAN DEFAULT 0"))
+        db.session.execute(text("ALTER TABLE contact_messages ADD COLUMN status VARCHAR(50) DEFAULT 'New'"))
+        db.session.execute(text("ALTER TABLE contact_messages ADD COLUMN user_id INTEGER"))
+        db.session.execute(text("ALTER TABLE contact_messages ADD COLUMN ai_priority VARCHAR(50)"))
+        db.session.execute(text("ALTER TABLE contact_messages ADD COLUMN ai_category VARCHAR(100)"))
+        db.session.execute(text("ALTER TABLE contact_messages ADD COLUMN ai_action VARCHAR(200)"))
 
         db.session.commit()
         return "Database upgraded successfully."

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard | Pure Prosperity Cyber{% endblock %}
+
+{% block content %}
+
+<section class="ppc-admin">
+
+    <div class="ppc-admin-header">
+        <div>
+            <h1>Admin Dashboard</h1>
+            <p>Manage customer requests and lead status.</p>
+        </div>
+    </div>
+
+    {% with messages_flash = get_flashed_messages() %}
+        {% if messages_flash %}
+            <div class="success-msg">{{ messages_flash[0] }}</div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="ppc-stat-grid">
+        <div class="ppc-stat-card">
+            <span>Total Users</span>
+            <strong>{{ total_users }}</strong>
+        </div>
+
+        <div class="ppc-stat-card">
+            <span>Total Leads</span>
+            <strong>{{ total_leads }}</strong>
+        </div>
+
+        <div class="ppc-stat-card">
+            <span>New Leads</span>
+            <strong>{{ new_leads }}</strong>
+        </div>
+
+        <div class="ppc-stat-card">
+            <span>In Progress</span>
+            <strong>{{ in_progress }}</strong>
+        </div>
+
+        <div class="ppc-stat-card">
+            <span>Closed</span>
+            <strong>{{ closed }}</strong>
+        </div>
+    </div>
+
+    <div class="ppc-leads-grid">
+        {% for msg in messages %}
+        <div class="ppc-lead-card">
+
+            <div class="ppc-lead-top">
+                <div>
+                    <h2>{{ msg.subject }}</h2>
+                    <p>{{ msg.submitted_at.strftime("%d-%m-%Y %I:%M %p") if msg.submitted_at else "" }}</p>
+                </div>
+
+                <span class="ppc-badge {{ msg.status|lower|replace(' ', '-') }}">
+                    {{ msg.status }}
+                </span>
+            </div>
+
+            <div class="ppc-lead-info">
+                <p><strong>Name:</strong> {{ msg.name }}</p>
+                <p><strong>Email:</strong> {{ msg.email }}</p>
+                <p><strong>Message:</strong> {{ msg.message }}</p>
+            </div>
+
+            <div class="ppc-actions">
+                <a href="{{ url_for('admin.mark_read', message_id=msg.id) }}">Mark Read</a>
+                <a href="{{ url_for('admin.set_status', message_id=msg.id, status='New') }}">New</a>
+                <a href="{{ url_for('admin.set_status', message_id=msg.id, status='In Progress') }}">In Progress</a>
+                <a href="{{ url_for('admin.set_status', message_id=msg.id, status='Closed') }}">Closed</a>
+                <a class="delete" href="{{ url_for('admin.delete_message', id=msg.id) }}">Delete</a>
+            </div>
+
+        </div>
+        {% else %}
+        <div class="ppc-lead-card">
+            <p>No contact requests found.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+</section>
+
+{% endblock %}

@@ -1,31 +1,48 @@
 {% extends "base.html" %}
 
-{% block title %}Contact{% endblock %}
+{% block title %}Contact | Pure Prosperity Cyber{% endblock %}
 
 {% block content %}
-<section class="section">
-    <div class="container">
-        <h1>Contact Pure Prosperity Cyber</h1>
 
-        <form method="POST" action="{{ url_for('contact.contact') }}">
-            <p>
-                <input type="text" name="name" placeholder="Your Name" required>
-            </p>
+<section class="auth-page">
+    <div class="auth-card">
+        <h1>Contact Us</h1>
+        <p>Tell us about your requirement. We’ll get back to you.</p>
 
-            <p>
-                <input type="email" name="email" placeholder="Your Email" required>
-            </p>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="success-msg">
+                    {{ messages[0] }}
+                </div>
+            {% endif %}
+        {% endwith %}
 
-            <p>
-                <input type="text" name="subject" placeholder="Subject" required>
-            </p>
+        <form method="POST">
+            <div class="form-group">
+                <label>Your Name</label>
+                <input type="text" name="name" required>
+            </div>
 
-            <p>
-                <textarea name="message" rows="6" placeholder="Tell us about your requirement" required></textarea>
-            </p>
+            <div class="form-group">
+                <label>Your Email</label>
+                <input type="email" name="email" required>
+            </div>
 
-            <button type="submit" class="btn">Send Message</button>
+            <div class="form-group">
+                <label>Subject</label>
+                <input type="text" name="subject" required>
+            </div>
+
+            <div class="form-group">
+                <label>Message</label>
+                <textarea name="message" rows="4" required></textarea>
+            </div>
+
+            <button type="submit" class="btn-primary full-btn">
+                Send Message
+            </button>
         </form>
     </div>
 </section>
+
 {% endblock %}

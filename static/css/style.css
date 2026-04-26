@@ -311,3 +311,397 @@ a {
         padding: 60px 20px;
     }
 }
+
+/* AUTH PAGES */
+.auth-page {
+    min-height: calc(100vh - 72px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    background:
+        radial-gradient(circle at top, rgba(37, 99, 235, 0.25), transparent 35%),
+        linear-gradient(135deg, #020617, #0f172a);
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 430px;
+    background: linear-gradient(145deg, #0f172a, #1e293b);
+    border: 1px solid #1e293b;
+    border-radius: 18px;
+    padding: 35px;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
+}
+
+.auth-card h1 {
+    margin: 0 0 10px;
+    font-size: 36px;
+}
+
+.auth-card p {
+    color: #cbd5e1;
+}
+
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 13px;
+    border-radius: 10px;
+    border: 1px solid #334155;
+    background: #020617;
+    color: white;
+    outline: none;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: #38bdf8;
+}
+
+.full-btn {
+    width: 100%;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.auth-link {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.auth-link a {
+    color: #38bdf8;
+}
+
+.success-msg {
+    background: #16a34a;
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+/* ADMIN DASHBOARD */
+.admin-container {
+    padding: 40px;
+}
+
+.admin-header h1 {
+    font-size: 32px;
+    margin-bottom: 5px;
+}
+
+.admin-header p {
+    color: #94a3b8;
+}
+
+/* STATS */
+.admin-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: 25px 0;
+}
+
+.stat-card {
+    background: #0f172a;
+    padding: 15px 20px;
+    border-radius: 10px;
+    min-width: 150px;
+}
+
+.stat-card h4 {
+    color: #94a3b8;
+    margin: 0;
+}
+
+.stat-card p {
+    font-size: 22px;
+    margin: 5px 0 0;
+    color: #38bdf8;
+}
+
+/* LEADS */
+.leads-container {
+    display: grid;
+    gap: 20px;
+}
+
+.lead-card {
+    background: #0f172a;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #1e293b;
+}
+
+.lead-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.lead-header h3 {
+    margin: 0;
+}
+
+.lead-time {
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+/* STATUS */
+.status {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+.status.new {
+    background: #2563eb;
+}
+
+.status.read {
+    background: #16a34a;
+}
+
+/* ACTIONS */
+.lead-actions {
+    margin-top: 15px;
+}
+
+.btn-small {
+    background: #2563eb;
+    padding: 6px 10px;
+    border-radius: 6px;
+    color: white;
+    margin-right: 10px;
+}
+
+.btn-danger {
+    background: #dc2626;
+    padding: 6px 10px;
+    border-radius: 6px;
+    color: white;
+}
+
+/* NEW ADMIN PANEL DESIGN */
+.ppc-admin {
+    min-height: calc(100vh - 72px);
+    padding: 50px;
+    background: #020617;
+}
+
+.ppc-admin-header {
+    max-width: 1200px;
+    margin: 0 auto 30px;
+}
+
+.ppc-admin-header h1 {
+    font-size: 42px;
+    margin: 0;
+}
+
+.ppc-admin-header p {
+    color: #94a3b8;
+    margin-top: 10px;
+}
+
+.ppc-stat-grid {
+    max-width: 1200px;
+    margin: 0 auto 35px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 18px;
+}
+
+.ppc-stat-card {
+    background: linear-gradient(145deg, #0f172a, #1e293b);
+    border: 1px solid #1e293b;
+    border-radius: 16px;
+    padding: 22px;
+}
+
+.ppc-stat-card span {
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+.ppc-stat-card strong {
+    display: block;
+    color: #38bdf8;
+    font-size: 34px;
+    margin-top: 10px;
+}
+
+.ppc-leads-grid {
+    max-width: 1200px;
+    margin: auto;
+    display: grid;
+    gap: 22px;
+}
+
+.ppc-lead-card {
+    background: linear-gradient(145deg, #0f172a, #111827);
+    border: 1px solid #1e293b;
+    border-radius: 18px;
+    padding: 26px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+}
+
+.ppc-lead-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    align-items: flex-start;
+    border-bottom: 1px solid #1e293b;
+    padding-bottom: 18px;
+}
+
+.ppc-lead-top h2 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.ppc-lead-top p {
+    color: #94a3b8;
+    margin: 8px 0 0;
+}
+
+.ppc-badge {
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    background: #2563eb;
+    color: white;
+}
+
+.ppc-badge.read {
+    background: #16a34a;
+}
+
+.ppc-badge.new {
+    background: #2563eb;
+}
+
+.ppc-badge.in-progress {
+    background: #f59e0b;
+}
+
+.ppc-badge.closed {
+    background: #64748b;
+}
+
+.ppc-lead-info {
+    margin-top: 18px;
+}
+
+.ppc-lead-info p {
+    color: #e5e7eb;
+    line-height: 1.6;
+}
+
+.ppc-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 22px;
+}
+
+.ppc-actions a {
+    background: #1e293b;
+    border: 1px solid #38bdf8;
+    color: #38bdf8;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-weight: 700;
+}
+
+.ppc-actions a:hover {
+    background: #2563eb;
+    color: white;
+    border-color: #2563eb;
+}
+
+.ppc-actions .delete {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: white;
+}
+
+.ppc-actions .delete:hover {
+    background: #b91c1c;
+}
+
+@media (max-width: 900px) {
+    .ppc-admin {
+        padding: 25px;
+    }
+
+    .ppc-stat-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ppc-lead-top {
+        flex-direction: column;
+    }
+}
+
+/* DASHBOARD FILTER ALIGNMENT */
+.ppc-filter-bar {
+    max-width: 1200px;
+    margin: 0 auto 25px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.ppc-filter-bar a {
+    color: #38bdf8;
+    border: 1px solid #1e293b;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: #0f172a;
+    font-weight: 600;
+}
+
+.ppc-filter-bar a:hover,
+.ppc-filter-bar a.active {
+    background: #2563eb;
+    color: white;
+    border-color: #2563eb;
+}
+
+/* AI PRIORITY COLORS */
+.ppc-badge.high {
+    background: #dc2626;
+}
+
+.ppc-badge.medium {
+    background: #f59e0b;
+}
+
+.ppc-badge.low {
+    background: #16a34a;
+}
+
+.ppc-badge.unread {
+    background: #2563eb;
+}
+
+.ppc-badge.read {
+    background: #16a34a;
+}

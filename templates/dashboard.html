@@ -1,114 +1,127 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Dashboard{% endblock %}
+{% block title %}Admin Dashboard | Pure Prosperity Cyber{% endblock %}
 
 {% block content %}
-<section class="section">
-    <div class="container">
-        <h1>Admin Panel</h1>
-        <p>Manage users, leads, customer requests, and AI lead analysis.</p>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <h3>Total Users</h3>
-                <p>{{ total_users }}</p>
-            </div>
+<section class="ppc-admin">
 
-            <div class="stat-card">
-                <h3>Total Leads</h3>
-                <p>{{ total_leads }}</p>
-            </div>
-
-            <div class="stat-card">
-                <h3>New Leads</h3>
-                <p>{{ new_leads }}</p>
-            </div>
-
-            <div class="stat-card">
-                <h3>In Progress</h3>
-                <p>{{ progress_leads }}</p>
-            </div>
-
-            <div class="stat-card">
-                <h3>Closed</h3>
-                <p>{{ closed_leads }}</p>
-            </div>
+    <div class="ppc-admin-header">
+        <div>
+            <h1>Admin Dashboard</h1>
+            <p>Manage customer requests, leads, and status.</p>
         </div>
-
-        <div class="filter-bar">
-            <a class="filter-link {% if status_filter == 'All' %}active-filter{% endif %}" href="{{ url_for('main.dashboard') }}">All</a>
-            <a class="filter-link {% if status_filter == 'New' %}active-filter{% endif %}" href="{{ url_for('main.dashboard', status='New') }}">New</a>
-            <a class="filter-link {% if status_filter == 'In Progress' %}active-filter{% endif %}" href="{{ url_for('main.dashboard', status='In Progress') }}">In Progress</a>
-            <a class="filter-link {% if status_filter == 'Closed' %}active-filter{% endif %}" href="{{ url_for('main.dashboard', status='Closed') }}">Closed</a>
-        </div>
-
-        {% if messages %}
-            <div class="dashboard-messages">
-                {% for msg in messages %}
-                    <div class="message-card {% if not msg.is_read %}unread-card{% endif %}">
-                        <div class="message-top">
-                            <div>
-                                <h3>{{ msg.subject }}</h3>
-                                <p class="lead-meta">{{ msg.submitted_at.strftime('%d-%m-%Y %H:%M') }}</p>
-                            </div>
-
-                            <div class="badge-group">
-                                {% if msg.is_read %}
-                                    <span class="status-badge read-badge">Read</span>
-                                {% else %}
-                                    <span class="status-badge unread-badge">Unread</span>
-                                {% endif %}
-
-                                {% if msg.status == "New" %}
-                                    <span class="status-badge lead-new">New</span>
-                                {% elif msg.status == "In Progress" %}
-                                    <span class="status-badge lead-progress">In Progress</span>
-                                {% else %}
-                                    <span class="status-badge lead-closed">Closed</span>
-                                {% endif %}
-
-                                {% if msg.ai_priority == "High" %}
-                                    <span class="status-badge priority-high">AI High</span>
-                                {% elif msg.ai_priority == "Medium" %}
-                                    <span class="status-badge priority-medium">AI Medium</span>
-                                {% elif msg.ai_priority == "Low" %}
-                                    <span class="status-badge priority-low">AI Low</span>
-                                {% else %}
-                                    <span class="status-badge">AI Pending</span>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <p><strong>Name:</strong> {{ msg.name }}</p>
-                        <p><strong>Email:</strong> <a href="mailto:{{ msg.email }}">{{ msg.email }}</a></p>
-                        <p><strong>Message:</strong> {{ msg.message }}</p>
-
-                        <div class="ai-box">
-                            <h4>🤖 AI Analysis</h4>
-                            <p><strong>Priority:</strong> {{ msg.ai_priority or "Not analyzed" }}</p>
-                            <p><strong>Category:</strong> {{ msg.ai_category or "Not analyzed" }}</p>
-                            <p><strong>Action:</strong> {{ msg.ai_action or "Not analyzed" }}</p>
-                        </div>
-
-                        <div class="message-actions">
-                            {% if not msg.is_read %}
-                                <a href="{{ url_for('main.mark_lead_read', lead_id=msg.id) }}" class="btn btn-secondary">Mark Read</a>
-                            {% endif %}
-
-                            <a href="{{ url_for('main.update_lead_status', lead_id=msg.id, status='new') }}" class="btn btn-light">New</a>
-
-                            <a href="{{ url_for('main.update_lead_status', lead_id=msg.id, status='progress') }}" class="btn btn-secondary">In Progress</a>
-
-                            <a href="{{ url_for('main.update_lead_status', lead_id=msg.id, status='closed') }}" class="btn btn-success">Closed</a>
-
-                            <a href="{{ url_for('main.delete_lead', lead_id=msg.id) }}" class="btn btn-danger">Delete</a>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <p>No leads found.</p>
-        {% endif %}
     </div>
+
+    {% with messages_flash = get_flashed_messages() %}
+        {% if messages_flash %}
+            <div class="success-msg">{{ messages_flash[0] }}</div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="ppc-stat-grid">
+        <div class="ppc-stat-card">
+            <span>Total Users</span>
+            <strong>{{ total_users }}</strong>
+        </div>
+
+        <div class="ppc-stat-card">
+            <span>Total Leads</span>
+            <strong>{{ total_leads }}</strong>
+        </div>
+
+        <div class="ppc-stat-card">
+            <span>New Leads</span>
+            <strong>{{ new_leads }}</strong>
+        </div>
+
+        <div class="ppc-stat-card">
+            <span>In Progress</span>
+            <strong>{{ progress_leads }}</strong>
+        </div>
+
+        <div class="ppc-stat-card">
+            <span>Closed</span>
+            <strong>{{ closed_leads }}</strong>
+        </div>
+    </div>
+
+    <div class="ppc-filter-bar">
+        <a href="{{ url_for('main.dashboard') }}" class="{% if status_filter == 'All' %}active{% endif %}">All</a>
+        <a href="{{ url_for('main.dashboard', status='New') }}" class="{% if status_filter == 'New' %}active{% endif %}">New</a>
+        <a href="{{ url_for('main.dashboard', status='In Progress') }}" class="{% if status_filter == 'In Progress' %}active{% endif %}">In Progress</a>
+        <a href="{{ url_for('main.dashboard', status='Closed') }}" class="{% if status_filter == 'Closed' %}active{% endif %}">Closed</a>
+    </div>
+
+    <div class="ppc-leads-grid">
+        {% for msg in messages %}
+        <div class="ppc-lead-card">
+
+            <div class="ppc-lead-top">
+                <div>
+                    <h2>{{ msg.subject }}</h2>
+                    <p>{{ msg.submitted_at.strftime("%d-%m-%Y %I:%M %p") if msg.submitted_at else "" }}</p>
+                </div>
+
+                <div class="ppc-badge-group">
+                    {% if msg.is_read %}
+                        <span class="ppc-badge read">Read</span>
+                    {% else %}
+                        <span class="ppc-badge unread">Unread</span>
+                    {% endif %}
+
+                    <span class="ppc-badge {{ msg.status|lower|replace(' ', '-') }}">
+                        {{ msg.status }}
+                    </span>
+
+                    {% if msg.ai_priority %}
+                        <span class="ppc-badge {{ msg.ai_priority|lower }}">
+                            {{ msg.ai_priority }}
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="ppc-lead-info">
+                <p><strong>Name:</strong> {{ msg.name }}</p>
+                <p><strong>Email:</strong> <a href="mailto:{{ msg.email }}">{{ msg.email }}</a></p>
+                <p><strong>Message:</strong> {{ msg.message }}</p>
+            </div>
+
+            <div class="ppc-ai-box">
+                <h4>🤖 AI Analysis</h4>
+
+                <p>
+                    <strong>Priority:</strong>
+                    {% if msg.ai_priority %}
+                        <span class="ppc-badge {{ msg.ai_priority|lower }}">
+                            {{ msg.ai_priority }}
+                        </span>
+                    {% else %}
+                        Not analyzed
+                    {% endif %}
+                </p>
+
+                <p><strong>Category:</strong> {{ msg.ai_category or "Not analyzed" }}</p>
+                <p><strong>Action:</strong> {{ msg.ai_action or "Not analyzed" }}</p>
+            </div>
+
+            <div class="ppc-actions">
+                <a href="{{ url_for('main.mark_lead_read', lead_id=msg.id) }}">Mark Read</a>
+                <a href="{{ url_for('main.update_lead_status', lead_id=msg.id, status='new') }}">New</a>
+                <a href="{{ url_for('main.update_lead_status', lead_id=msg.id, status='progress') }}">In Progress</a>
+                <a href="{{ url_for('main.update_lead_status', lead_id=msg.id, status='closed') }}">Closed</a>
+                <a class="delete" href="{{ url_for('main.delete_lead', lead_id=msg.id) }}">Delete</a>
+            </div>
+
+        </div>
+        {% else %}
+        <div class="ppc-lead-card">
+            <p>No leads found.</p>
+        </div>
+        {% endfor %}
+    </div>
+
 </section>
+
 {% endblock %}

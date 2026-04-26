@@ -24,10 +24,12 @@ def create_app():
     from routes.main import main_bp
     from routes.contact import contact_bp
     from routes.auth import auth_bp
+    from routes.admin import admin_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(contact_bp)
     app.register_blueprint(auth_bp, url_prefix="/auth")
+    app.register_blueprint(admin_bp, url_prefix="/admin")
 
     @app.errorhandler(500)
     def internal_error(error):
@@ -44,4 +46,4 @@ app = create_app()
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=False)
