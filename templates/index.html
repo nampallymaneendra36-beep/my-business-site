@@ -4,42 +4,81 @@
 
 {% block content %}
 
-<section class="home-hero">
+<section class="home-hero cyber-animated-bg">
     <div class="home-hero-content">
-        <span class="eyebrow">Cybersecurity for modern businesses</span>
-        <h1>Pure Prosperity Cyber</h1>
-        <h2>Advanced Cybersecurity Solutions</h2>
-        <p>
+        <span class="eyebrow" data-aos="fade-down">Cybersecurity for modern businesses</span>
+
+        <h1 data-aos="fade-up">Pure Prosperity Cyber</h1>
+
+        <h2 data-aos="fade-up" data-aos-delay="150">
+            Advanced Cybersecurity Solutions
+        </h2>
+
+        <p data-aos="fade-up" data-aos-delay="250">
             We help startups and businesses protect websites, applications,
             infrastructure, and users from modern cyber threats.
         </p>
 
-        <div class="hero-buttons">
-            <a href="/contact" class="btn-primary">Book Security Audit</a>
+        <div class="hero-buttons" data-aos="zoom-in" data-aos-delay="350">
+            <a href="/contact" class="btn-primary glow-btn">Book Security Audit</a>
             <a href="/services" class="btn-secondary">View Services</a>
+        </div>
+
+        <div class="hero-stats" data-aos="fade-up" data-aos-delay="450">
+            <div>
+                <strong>24/7</strong>
+                <span>Monitoring</span>
+            </div>
+            <div>
+                <strong>WAF</strong>
+                <span>Protection</span>
+            </div>
+            <div>
+                <strong>SOC</strong>
+                <span>Visibility</span>
+            </div>
         </div>
     </div>
 </section>
 
+<section class="terminal-section">
+    <div class="section-header" data-aos="fade-up">
+        <span class="eyebrow">Live security layer</span>
+        <h2>Real-Time Protection Simulation</h2>
+        <p>A cyber-style monitoring preview inspired by SOC and WAF activity.</p>
+    </div>
+
+    <div class="terminal-card" data-aos="zoom-in">
+        <div class="terminal-top">
+            <span></span>
+            <span></span>
+            <span></span>
+            <p>pure-prosperity-cyber / live-monitor</p>
+        </div>
+
+        <div id="terminal-output" class="terminal-output"></div>
+    </div>
+</section>
+
 <section class="home-services">
-    <div class="section-header">
+    <div class="section-header" data-aos="fade-up">
         <span class="eyebrow">What we do</span>
         <h2>Our Core Services</h2>
         <p>Practical cybersecurity services built for real business protection.</p>
     </div>
 
     <div class="cards-grid">
-        <div class="premium-card">
+        <div class="premium-card cyber-card" data-aos="fade-up">
             <h3>Penetration Testing</h3>
             <p>Identify vulnerabilities before attackers exploit them.</p>
         </div>
 
-        <div class="premium-card">
+        <div class="premium-card cyber-card" data-aos="fade-up" data-aos-delay="150">
             <h3>Security Operations</h3>
             <p>Threat monitoring, alert triage, and incident response support.</p>
         </div>
 
-        <div class="premium-card">
+        <div class="premium-card cyber-card" data-aos="fade-up" data-aos-delay="300">
             <h3>Web Application Firewall</h3>
             <p>Protection against web attacks, brute force, and malicious requests.</p>
         </div>
@@ -47,33 +86,33 @@
 </section>
 
 <section class="why-us">
-    <div class="section-header">
+    <div class="section-header" data-aos="fade-up">
         <span class="eyebrow">Why choose us</span>
         <h2>Security That Supports Your Growth</h2>
     </div>
 
     <div class="cards-grid">
-        <div class="premium-card">
+        <div class="premium-card cyber-card" data-aos="fade-up">
             <h3>Expert Guidance</h3>
             <p>Clear security recommendations without unnecessary complexity.</p>
         </div>
 
-        <div class="premium-card">
+        <div class="premium-card cyber-card" data-aos="fade-up" data-aos-delay="150">
             <h3>Business-Focused</h3>
             <p>We focus on the risks that matter most to your company.</p>
         </div>
 
-        <div class="premium-card">
+        <div class="premium-card cyber-card" data-aos="fade-up" data-aos-delay="300">
             <h3>Practical Remediation</h3>
             <p>Actionable fixes your team can understand and implement.</p>
         </div>
     </div>
 </section>
 
-<section class="cta">
+<section class="cta" data-aos="fade-up">
     <h2>Ready to Secure Your Business?</h2>
     <p>Start with a professional security audit.</p>
-    <a href="/contact" class="btn-primary">Get Started</a>
+    <a href="/contact" class="btn-primary glow-btn">Get Started</a>
 </section>
 
 {% endblock %}

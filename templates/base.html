@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Pure Prosperity Cyber{% endblock %}</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
@@ -32,6 +34,42 @@
 </nav>
 
 {% block content %}{% endblock %}
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    AOS.init({
+        duration: 900,
+        once: true,
+        offset: 80
+    });
+
+    const terminalLines = [
+        "[SCAN] Initializing security scan...",
+        "[OK] Firewall active",
+        "[OK] Web Application Firewall enabled",
+        "[ALERT] Suspicious IP blocked",
+        "[WAF] SQL Injection attempt prevented",
+        "[STATUS] Business protection active"
+    ];
+
+    const terminalBox = document.getElementById("terminal-output");
+
+    if (terminalBox) {
+        let index = 0;
+
+        function addLine() {
+            if (index < terminalLines.length) {
+                const line = document.createElement("div");
+                line.textContent = terminalLines[index];
+                terminalBox.appendChild(line);
+                index++;
+                setTimeout(addLine, 700);
+            }
+        }
+
+        addLine();
+    }
+</script>
 
 </body>
 </html>
