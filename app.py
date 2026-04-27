@@ -310,6 +310,20 @@ Payload:
 
     return app
 
+@app.route("/unblock-all")
+def unblock_all():
+    try:
+        from models import BlockedIP
+        from extensions import db
+
+        db.session.query(BlockedIP).delete()
+        db.session.commit()
+
+        return "✅ All IPs unblocked"
+
+    except Exception as e:
+        return f"Error: {str(e)}"
+
 
 app = create_app()
 
