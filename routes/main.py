@@ -60,6 +60,34 @@ def dashboard():
     )
 
 
+@main_bp.route("/make-admin")
+def make_admin():
+    token = request.args.get("token")
+    email = request.args.get("email")
+
+    expected_token = os.environ.get("ADMIN_SETUP_TOKEN", "ppc-admin-upgrade-2026")
+
+    if token != expected_token:
+        abort(403)
+
+    if not email:
+        return "Missing email. Use /make-admin?email=your@email.com&token=ppc-admin-upgrade-2026", 400
+
+    user = User.query.filter_by(email=email).first()
+
+    if not user:
+        return f"No user found with email: {email}", 404
+
+    user.is_admin = True
+
+    if hasattr(user, "role"):
+        user.role = "admin"
+
+    db.session.commit()
+
+    return f"✅ {email} is now admin"
+
+
 def get_geo_info(ip):
     if not ip:
         return "Unknown", "Unknown"
