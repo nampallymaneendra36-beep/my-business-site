@@ -3,7 +3,7 @@ from flask import Blueprint, render_template, abort, redirect, url_for, flash, r
 from flask_login import login_required, current_user
 from sqlalchemy import text
 from extensions import db
-from models import ContactMessage, User
+from models import ContactMessage, User, SecurityEvent, BlockedIP
 
 main_bp = Blueprint("main", __name__)
 
@@ -31,7 +31,6 @@ def dashboard():
         return redirect(url_for("main.my_requests"))
 
     status_filter = request.args.get("status", "All")
-
     query = ContactMessage.query
 
     if status_filter in ["New", "In Progress", "Closed"]:
@@ -49,22 +48,176 @@ def dashboard():
 
     messages = query.all()
 
-    total_users = User.query.count()
-    total_leads = ContactMessage.query.count()
-    new_leads = ContactMessage.query.filter(ContactMessage.status == "New").count()
-    progress_leads = ContactMessage.query.filter(ContactMessage.status == "In Progress").count()
-    closed_leads = ContactMessage.query.filter(ContactMessage.status == "Closed").count()
-
     return render_template(
         "dashboard.html",
         messages=messages,
         status_filter=status_filter,
-        total_users=total_users,
-        total_leads=total_leads,
-        new_leads=new_leads,
-        progress_leads=progress_leads,
-        closed_leads=closed_leads
+        total_users=User.query.count(),
+        total_leads=ContactMessage.query.count(),
+        new_leads=ContactMessage.query.filter(ContactMessage.status == "New").count(),
+        progress_leads=ContactMessage.query.filter(ContactMessage.status == "In Progress").count(),
+        closed_leads=ContactMessage.query.filter(ContactMessage.status == "Closed").count()
     )
+
+
+def get_geo_info(ip):
+    if not ip:
+        return "Unknown", "Unknown"
+
+    if ip.startswith("127.") or ip == "::1" or ip.startswith("192.168.") or ip.startswith("10."):
+        return "Localhost", "Internal"
+
+    return "Unknown", "External"
+
+
+def analyze_threat(event):
+    payload = str(event.payload or "").lower()
+    attack = str(event.attack_type or "").lower()
+
+    score = 0
+    category = "Unknown"
+    action = "Monitor"
+
+    if "javascript" in payload or "<script" in payload or "alert" in payload or "onerror" in payload:
+        score = 90
+        category = "Cross-Site Scripting (XSS)"
+        action = "Block IP, sanitize input, review affected page"
+
+    elif "union" in payload or "or 1=1" in payload or "drop table" in payload:
+        score = 85
+        category = "SQL Injection"
+        action = "Block IP, review database logs, validate parameterized queries"
+
+    elif "cmd=" in payload or "powershell" in payload or "curl" in payload or "wget" in payload:
+        score = 80
+        category = "Command Injection"
+        action = "Block IP, isolate host, review command execution paths"
+
+    elif "../" in payload or "..\\" in payload or "etc/passwd" in payload:
+        score = 70
+        category = "Path Traversal"
+        action = "Block IP, check file access logs, validate path handling"
+
+    elif attack == "xss":
+        score = 75
+        category = "Cross-Site Scripting (XSS)"
+        action = "Review payload and sanitize user input"
+
+    elif attack == "sqli":
+        score = 80
+        category = "SQL Injection"
+        action = "Review database access and input validation"
+
+    elif attack == "command injection":
+        score = 80
+        category = "Command Injection"
+        action = "Review server command execution risk"
+
+    else:
+        score = 40
+        category = "Suspicious Activity"
+        action = "Monitor traffic and review logs"
+
+    if score >= 85:
+        severity = "Critical"
+    elif score >= 70:
+        severity = "High"
+    elif score >= 50:
+        severity = "Medium"
+    else:
+        severity = "Low"
+
+    return severity, score, category, action
+
+
+@main_bp.route("/soc")
+@login_required
+def soc_dashboard():
+    if not current_user.is_admin:
+        abort(403)
+
+    search = request.args.get("search", "").strip().lower()
+
+    all_events = SecurityEvent.query.order_by(SecurityEvent.timestamp.desc()).all()
+    blocked_ips = BlockedIP.query.order_by(BlockedIP.blocked_at.desc()).all()
+
+    filtered_events = []
+
+    for event in all_events:
+        combined = " ".join([
+            str(event.ip_address or ""),
+            str(event.attack_type or ""),
+            str(event.path or ""),
+            str(event.method or ""),
+            str(event.payload or "")
+        ]).lower()
+
+        if not search or search in combined:
+            country, source_type = get_geo_info(event.ip_address)
+            severity, score, category, action = analyze_threat(event)
+
+            filtered_events.append({
+                "time": event.timestamp,
+                "ip": event.ip_address,
+                "method": event.method,
+                "path": event.path,
+                "attack": event.attack_type,
+                "payload": event.payload,
+                "severity": severity,
+                "score": score,
+                "category": category,
+                "action": action,
+                "country": country,
+                "source_type": source_type
+            })
+
+    xss_count = len([e for e in all_events if e.attack_type == "XSS"])
+    sqli_count = len([e for e in all_events if e.attack_type == "SQLi"])
+    command_count = len([e for e in all_events if e.attack_type == "Command Injection"])
+
+    critical_count = len([e for e in all_events if analyze_threat(e)[0] == "Critical"])
+    high_count = len([e for e in all_events if analyze_threat(e)[0] == "High"])
+    medium_count = len([e for e in all_events if analyze_threat(e)[0] == "Medium"])
+
+    total_events = len(all_events)
+
+    xss_percent = int((xss_count / total_events) * 100) if total_events else 0
+    sqli_percent = int((sqli_count / total_events) * 100) if total_events else 0
+    command_percent = int((command_count / total_events) * 100) if total_events else 0
+
+    return render_template(
+        "soc_dashboard.html",
+        events=filtered_events,
+        blocked_ips=blocked_ips,
+        total_events=total_events,
+        xss_count=xss_count,
+        sqli_count=sqli_count,
+        command_count=command_count,
+        blocked_count=len(blocked_ips),
+        critical_count=critical_count,
+        high_count=high_count,
+        medium_count=medium_count,
+        xss_percent=xss_percent,
+        sqli_percent=sqli_percent,
+        command_percent=command_percent,
+        search=search
+    )
+
+
+@main_bp.route("/unblock/<ip>")
+@login_required
+def unblock_ip(ip):
+    if not current_user.is_admin:
+        abort(403)
+
+    blocked_ip = BlockedIP.query.filter_by(ip_address=ip).first()
+
+    if blocked_ip:
+        db.session.delete(blocked_ip)
+        db.session.commit()
+        flash(f"IP {ip} unblocked successfully.", "success")
+
+    return redirect(url_for("main.soc_dashboard"))
 
 
 @main_bp.route("/my-requests")

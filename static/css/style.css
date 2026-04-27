@@ -705,3 +705,209 @@ a {
 .ppc-badge.read {
     background: #16a34a;
 }
+
+/* ================================
+   FINAL SPLUNK-STYLE SOC DASHBOARD
+   ================================ */
+
+.soc-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 30px 60px !important;
+    min-height: calc(100vh - 74px) !important;
+    background:
+        radial-gradient(circle at top left, rgba(14, 165, 233, 0.12), transparent 35%),
+        #020617 !important;
+}
+
+.soc-top {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 30px !important;
+}
+
+.soc-top h1 {
+    font-size: 46px !important;
+    line-height: 1.1 !important;
+    margin: 0 !important;
+    font-weight: 900 !important;
+}
+
+.soc-top p {
+    margin: 10px 0 0 !important;
+    color: #94a3b8 !important;
+    font-size: 17px !important;
+}
+
+.soc-live {
+    color: #22c55e !important;
+    border: 1px solid #22c55e !important;
+    background: rgba(34, 197, 94, 0.12) !important;
+    border-radius: 999px !important;
+    padding: 9px 16px !important;
+    font-size: 13px !important;
+    font-weight: 900 !important;
+    letter-spacing: 1px !important;
+}
+
+.soc-cards {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(170px, 1fr)) !important;
+    gap: 18px !important;
+    margin-bottom: 35px !important;
+}
+
+.soc-card {
+    width: auto !important;
+    text-align: left !important;
+    background: linear-gradient(145deg, #0f172a, #1e293b) !important;
+    border: 1px solid #1e293b !important;
+    border-radius: 18px !important;
+    padding: 24px !important;
+    box-shadow: 0 18px 45px rgba(0,0,0,.25) !important;
+}
+
+.soc-card span {
+    display: block !important;
+    color: #94a3b8 !important;
+    font-size: 14px !important;
+    margin-bottom: 12px !important;
+}
+
+.soc-card strong {
+    display: block !important;
+    color: #38bdf8 !important;
+    font-size: 36px !important;
+    font-weight: 900 !important;
+}
+
+.soc-card.danger strong {
+    color: #ef4444 !important;
+}
+
+.soc-panel {
+    background: transparent !important;
+}
+
+.soc-panel-head {
+    margin-bottom: 14px !important;
+}
+
+.soc-panel-head h2 {
+    margin: 0 !important;
+    font-size: 28px !important;
+}
+
+.soc-panel-head p {
+    margin: 6px 0 0 !important;
+    color: #94a3b8 !important;
+}
+
+.soc-table-box {
+    background: #0b1220 !important;
+    border: 1px solid #1e293b !important;
+    border-radius: 12px !important;
+    overflow-x: auto !important;
+    box-shadow: 0 18px 45px rgba(0,0,0,.28) !important;
+}
+
+.soc-table {
+    width: 100% !important;
+    min-width: 1000px !important;
+    border-collapse: collapse !important;
+}
+
+.soc-table th {
+    background: #111827 !important;
+    color: #38bdf8 !important;
+    padding: 15px !important;
+    text-align: left !important;
+    border-bottom: 1px solid #1e293b !important;
+    font-size: 14px !important;
+}
+
+.soc-table td {
+    padding: 15px !important;
+    color: #e5e7eb !important;
+    border-bottom: 1px solid #1e293b !important;
+    vertical-align: top !important;
+    font-size: 14px !important;
+}
+
+.soc-table tr:hover {
+    background: rgba(56, 189, 248, 0.08) !important;
+    transition: 0.2s !important;
+}
+
+.soc-badge {
+    display: inline-block !important;
+    background: #dc2626 !important;
+    color: white !important;
+    padding: 7px 12px !important;
+    border-radius: 999px !important;
+    font-size: 12px !important;
+    font-weight: 900 !important;
+}
+
+.soc-payload {
+    font-family: Consolas, monospace !important;
+    color: #22c55e !important;
+    background: #020617 !important;
+    padding: 8px !important;
+    border-radius: 6px !important;
+    max-width: 500px !important;
+    word-break: break-word !important;
+    font-size: 13px !important;
+}
+
+@media (max-width: 900px) {
+    .soc-wrapper {
+        padding: 28px 18px !important;
+    }
+
+    .soc-top {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 15px !important;
+    }
+
+    .soc-top h1 {
+        font-size: 34px !important;
+    }
+
+    .soc-cards {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* LIVE SOC INDICATOR */
+.soc-live {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    color: #22c55e !important;
+    border: 1px solid #22c55e !important;
+    background: rgba(34, 197, 94, 0.12) !important;
+    padding: 9px 16px !important;
+    border-radius: 999px !important;
+    font-weight: 900 !important;
+    font-size: 13px !important;
+    letter-spacing: 1px !important;
+}
+
+.soc-live .dot {
+    width: 9px !important;
+    height: 9px !important;
+    background: #22c55e !important;
+    border-radius: 50% !important;
+    animation: socBlink 1s infinite !important;
+    box-shadow: 0 0 10px #22c55e !important;
+}
+
+@keyframes socBlink {
+    0% { opacity: 1; }
+    50% { opacity: 0.25; }
+    100% { opacity: 1; }
+}

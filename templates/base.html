@@ -18,6 +18,11 @@
 
         {% if current_user.is_authenticated %}
             <li><a href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
+
+            {% if current_user.is_admin %}
+                <li><a href="{{ url_for('main.soc_dashboard') }}">SOC</a></li>
+            {% endif %}
+
             <li><a href="{{ url_for('main.my_requests') }}">My Requests</a></li>
             <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
         {% else %}
