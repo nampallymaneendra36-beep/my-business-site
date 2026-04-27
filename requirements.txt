@@ -9,3 +9,4 @@ Flask-Mail
 SQLAlchemy
 gunicorn
 psycopg2-binary
+requests
