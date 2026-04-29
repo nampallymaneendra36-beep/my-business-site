@@ -1,33 +1,61 @@
 {% extends "base.html" %}
 
-{% block title %}My Requests{% endblock %}
+{% block title %}My Requests | Pure Prosperity Cyber{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>My Requests</h1>
 
-    {% if messages %}
+<section class="ppc-admin user-requests-page">
+
+    <div class="ppc-admin-header">
+        <div>
+            <span class="admin-eyebrow">CLIENT PORTAL</span>
+            <h1>📨 My Requests</h1>
+            <p>Track your submitted security requests and current progress.</p>
+        </div>
+    </div>
+
+    <div class="ppc-leads-grid">
         {% for msg in messages %}
-            <div class="card">
-                <h3>{{ msg.subject }}</h3>
-                <p>{{ msg.message }}</p>
+        <div class="ppc-lead-card user-request-card">
 
-                <p>
-                    <strong>Status:</strong>
-                    {% if msg.status == "New" %}
-                        🟡 New
-                    {% elif msg.status == "In Progress" %}
-                        🔵 In Progress
-                    {% else %}
-                        🟢 Closed
-                    {% endif %}
-                </p>
+            <div class="ppc-lead-top">
+                <div>
+                    <h2>{{ msg.subject }}</h2>
+                    <p>{{ msg.submitted_at.strftime("%d-%m-%Y %I:%M %p") if msg.submitted_at else "" }}</p>
+                </div>
 
-                <p><strong>Date:</strong> {{ msg.submitted_at }}</p>
+                <span class="ppc-badge {{ msg.status|lower|replace(' ', '-') }}">
+                    {{ msg.status }}
+                </span>
             </div>
+
+            <div class="request-timeline">
+                <div class="{% if msg.status in ['New', 'In Progress', 'Closed'] %}active{% endif %}">
+                    <span></span>
+                    New
+                </div>
+                <div class="{% if msg.status in ['In Progress', 'Closed'] %}active{% endif %}">
+                    <span></span>
+                    In Progress
+                </div>
+                <div class="{% if msg.status == 'Closed' %}active{% endif %}">
+                    <span></span>
+                    Closed
+                </div>
+            </div>
+
+            <div class="ppc-lead-info">
+                <p>{{ msg.message }}</p>
+            </div>
+
+        </div>
+        {% else %}
+        <div class="ppc-lead-card">
+            <p class="empty-text">No requests found.</p>
+        </div>
         {% endfor %}
-    {% else %}
-        <p>No requests found.</p>
-    {% endif %}
-</div>
+    </div>
+
+</section>
+
 {% endblock %}

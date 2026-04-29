@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Login Audit Logs | Pure Prosperity Cyber{% endblock %}
+
+{% block content %}
+
+<section class="ppc-admin login-audit-page">
+    <div class="ppc-admin-header">
+        <div>
+            <span class="admin-eyebrow">ACCESS MONITORING</span>
+            <h1>🔐 Login Audit Logs</h1>
+            <p>Track successful logins, failed attempts, logout activity, IP address, and browser details.</p>
+        </div>
+    </div>
+
+    <div class="soc-table-box audit-table-box">
+        <table class="soc-table">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Email / Username</th>
+                    <th>User ID</th>
+                    <th>IP Address</th>
+                    <th>Status</th>
+                    <th>Browser / Device</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ log.timestamp.strftime("%d-%m-%Y %I:%M:%S %p") if log.timestamp else "" }}</td>
+                    <td>{{ log.email }}</td>
+                    <td>{{ log.user_id or "Unknown" }}</td>
+                    <td><span class="audit-ip">{{ log.ip_address }}</span></td>
+                    <td>
+                        {% if log.status == "SUCCESS" %}
+                            <span class="severity medium">✅ SUCCESS</span>
+                        {% elif log.status == "FAILED" %}
+                            <span class="severity critical">❌ FAILED</span>
+                        {% elif log.status == "LOGOUT" %}
+                            <span class="severity high">🔓 LOGOUT</span>
+                        {% else %}
+                            <span class="severity medium">{{ log.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="payload-box audit-user-agent">{{ log.user_agent }}</div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="empty-text">No login audit logs found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

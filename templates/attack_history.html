@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Attack History | Pure Prosperity Cyber{% endblock %}
+
+{% block content %}
+<section class="history-page">
+    <div class="history-head">
+        <div>
+            <h1>🧾 Attack History</h1>
+            <p>Persistent WAF event history with filtering and CSV export.</p>
+        </div>
+        <div class="history-actions">
+            <a class="secondary" href="{{ url_for('main.soc_dashboard') }}">Back to SOC</a>
+            <a href="/soc/history/export?{{ request.query_string.decode() }}">Export CSV</a>
+        </div>
+    </div>
+    <div class="history-panel">
+        <form class="history-filters" method="GET" action="/soc/history">
+            <input type="text" name="search" placeholder="Search payload/path/country..." value="{{ filters.search }}">
+            <input type="text" name="ip" placeholder="IP address" value="{{ filters.ip }}">
+            <select name="attack">
+                <option value="">All attacks</option>
+                {% for attack in attack_types %}<option value="{{ attack }}" {% if filters.attack == attack %}selected{% endif %}>{{ attack }}</option>{% endfor %}
+            </select>
+            <select name="severity">
+                <option value="">All severity</option>
+                {% for sev in ["Critical", "High", "Medium", "Low"] %}<option value="{{ sev }}" {% if filters.severity == sev %}selected{% endif %}>{{ sev }}</option>{% endfor %}
+            </select>
+            <input type="date" name="start" value="{{ filters.start }}">
+            <input type="date" name="end" value="{{ filters.end }}">
+            <button type="submit">Apply Filters</button>
+            <a href="/soc/history">Clear</a>
+        </form>
+        <div class="history-table-wrap">
+            <table class="history-table">
+                <thead><tr><th>Time</th><th>IP</th><th>Geo</th><th>Method</th><th>Path</th><th>Attack</th><th>Severity</th><th>Score</th><th>Payload</th></tr></thead>
+                <tbody>
+                    {% for e in events %}
+                    <tr>
+                        <td>{{ e.time }}</td>
+                        <td>{{ e.ip }}</td>
+                        <td><span class="geo-pill"><strong>{{ e.country }}</strong><small>{{ e.city or e.source_type }}</small></span></td>
+                        <td>{{ e.method }}</td>
+                        <td>{{ e.path }}</td>
+                        <td><span class="attack-badge">{{ e.attack }}</span></td>
+                        <td><span class="severity {{ e.severity|lower }}">{{ e.severity }}</span></td>
+                        <td>{{ e.score }}</td>
+                        <td><div class="history-payload">{{ e.payload }}</div></td>
+                    </tr>
+                    {% else %}<tr><td colspan="9" class="empty-text">No matching security events found.</td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

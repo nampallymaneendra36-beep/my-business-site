@@ -60,6 +60,75 @@
     </div>
 </section>
 
+<section class="attack-map-section advanced-map-section">
+    <div class="section-header" data-aos="fade-up">
+        <span class="eyebrow">Global threat visibility</span>
+        <h2>Advanced Cyber Attack Map</h2>
+        <p>Simulated live threat traffic, blocked requests, and suspicious activity flow.</p>
+    </div>
+
+    <div class="advanced-threat-map" data-aos="zoom-in">
+        <div class="map-header">
+            <span class="live-dot"></span>
+            <strong>LIVE THREAT INTELLIGENCE</strong>
+            <small>Updated every few seconds</small>
+        </div>
+
+        <div class="map-dashboard">
+            <div class="map-stats-panel">
+                <div>
+                    <span>Blocked Attacks</span>
+                    <strong class="counter" data-target="0">0</strong>
+                </div>
+                <div>
+                    <span>Suspicious IPs</span>
+                    <strong class="counter" data-target="0">0</strong>
+                </div>
+                <div>
+                    <span>WAF Events</span>
+                    <strong class="counter" data-target="0">0</strong>
+                </div>
+            </div>
+
+            <div class="map-visual">
+                <div class="scan-ring ring-one"></div>
+                <div class="scan-ring ring-two"></div>
+
+                <div class="region region-us">US</div>
+                <div class="region region-eu">EU</div>
+                <div class="region region-in">IN</div>
+                <div class="region region-apac">APAC</div>
+                <div class="region region-au">AU</div>
+
+                <div class="node node-us"></div>
+                <div class="node node-eu"></div>
+                <div class="node node-in"></div>
+                <div class="node node-apac"></div>
+                <div class="node node-au"></div>
+
+                <div class="beam beam-1"></div>
+                <div class="beam beam-2"></div>
+                <div class="beam beam-3"></div>
+                <div class="beam beam-4"></div>
+
+                <div class="packet packet-1"></div>
+                <div class="packet packet-2"></div>
+                <div class="packet packet-3"></div>
+                <div class="packet packet-4"></div>
+
+                <div class="threat-alert alert-one">SQLi Blocked</div>
+                <div class="threat-alert alert-two">XSS Attempt</div>
+                <div class="threat-alert alert-three">Brute Force</div>
+            </div>
+
+            <div class="map-log-panel">
+                <h4>Threat Feed</h4>
+                <div id="live-threat-feed" class="live-threat-feed"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <section class="home-services">
     <div class="section-header" data-aos="fade-up">
         <span class="eyebrow">What we do</span>

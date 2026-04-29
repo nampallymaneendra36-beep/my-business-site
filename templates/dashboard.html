@@ -4,12 +4,72 @@
 
 {% block content %}
 
-<section class="ppc-admin">
+<style>
+.admin-direct-grid {
+    max-width: 1300px;
+    margin: 0 auto 35px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 18px;
+    position: relative;
+    z-index: 999999;
+}
 
-    <div class="ppc-admin-header">
+.admin-direct-card {
+    width: 100%;
+    min-height: 145px;
+    background: linear-gradient(145deg, #0f172a, #1e293b);
+    border: 1px solid #38bdf8;
+    border-radius: 16px;
+    padding: 22px;
+    color: #ffffff;
+    text-align: left;
+    cursor: pointer;
+    font-family: inherit;
+    position: relative;
+    z-index: 999999;
+    pointer-events: auto !important;
+}
+
+.admin-direct-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 0 30px rgba(56, 189, 248, 0.25);
+}
+
+.admin-direct-card span {
+    display: block;
+    color: #e5e7eb;
+    font-size: 18px;
+}
+
+.admin-direct-card strong {
+    display: block;
+    color: #38bdf8;
+    font-size: 34px;
+    margin-top: 10px;
+}
+
+.admin-direct-card small {
+    display: block;
+    color: #ffffff;
+    margin-top: 10px;
+    font-size: 15px;
+}
+
+@media (max-width: 900px) {
+    .admin-direct-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<section class="ppc-admin admin-pro-page">
+
+    <div class="ppc-admin-header admin-pro-header">
         <div>
+            <span class="admin-eyebrow">COMMAND CENTER</span>
             <h1>Admin Dashboard</h1>
-            <p>Manage customer requests, leads, and status.</p>
+            <p>Manage leads, users, priorities, and request status from one place.</p>
         </div>
     </div>
 
@@ -19,43 +79,55 @@
         {% endif %}
     {% endwith %}
 
-    <div class="ppc-stat-grid">
-        <div class="ppc-stat-card">
+    <div class="admin-direct-grid">
+
+        <button type="button" class="admin-direct-card" data-url="/admin/users">
             <span>Total Users</span>
             <strong>{{ total_users }}</strong>
-        </div>
+            <small>Open user management</small>
+        </button>
 
-        <div class="ppc-stat-card">
+        <button type="button" class="admin-direct-card" data-url="/dashboard">
             <span>Total Leads</span>
             <strong>{{ total_leads }}</strong>
-        </div>
+            <small>Show all requests</small>
+        </button>
 
-        <div class="ppc-stat-card">
+        <button type="button" class="admin-direct-card" data-url="/dashboard?status=New">
             <span>New Leads</span>
             <strong>{{ new_leads }}</strong>
-        </div>
+            <small>Open new requests</small>
+        </button>
 
-        <div class="ppc-stat-card">
+        <button type="button" class="admin-direct-card" data-url="/dashboard?status=In%20Progress">
             <span>In Progress</span>
             <strong>{{ progress_leads }}</strong>
-        </div>
+            <small>Open active cases</small>
+        </button>
 
-        <div class="ppc-stat-card">
+        <button type="button" class="admin-direct-card" data-url="/dashboard?status=Closed">
             <span>Closed</span>
             <strong>{{ closed_leads }}</strong>
-        </div>
+            <small>Open closed cases</small>
+        </button>
+
     </div>
 
-    <div class="ppc-filter-bar">
-        <a href="{{ url_for('main.dashboard') }}" class="{% if status_filter == 'All' %}active{% endif %}">All</a>
-        <a href="{{ url_for('main.dashboard', status='New') }}" class="{% if status_filter == 'New' %}active{% endif %}">New</a>
-        <a href="{{ url_for('main.dashboard', status='In Progress') }}" class="{% if status_filter == 'In Progress' %}active{% endif %}">In Progress</a>
-        <a href="{{ url_for('main.dashboard', status='Closed') }}" class="{% if status_filter == 'Closed' %}active{% endif %}">Closed</a>
+    <div class="ppc-filter-bar admin-filter-bar">
+        <a href="/dashboard">All</a>
+        <a href="/dashboard?status=New">New</a>
+        <a href="/dashboard?status=In%20Progress">In Progress</a>
+        <a href="/dashboard?status=Closed">Closed</a>
     </div>
 
-    <div class="ppc-leads-grid">
+    <div class="admin-section-title">
+        <h2>{{ status_filter }} Requests</h2>
+        <p>{{ messages|length }} result(s) found</p>
+    </div>
+
+    <div class="ppc-leads-grid admin-leads-grid">
         {% for msg in messages %}
-        <div class="ppc-lead-card">
+        <div class="ppc-lead-card admin-lead-card">
 
             <div class="ppc-lead-top">
                 <div>
@@ -84,30 +156,24 @@
 
             <div class="ppc-lead-info">
                 <p><strong>Name:</strong> {{ msg.name }}</p>
-                <p><strong>Email:</strong> <a href="mailto:{{ msg.email }}">{{ msg.email }}</a></p>
+                <p><strong>Email:</strong> {{ msg.email }}</p>
                 <p><strong>Message:</strong> {{ msg.message }}</p>
             </div>
 
-            <div class="ppc-ai-box">
+            <div class="ppc-ai-box admin-ai-box">
                 <h4>🤖 AI Analysis</h4>
-
-                <p>
-                    <strong>Priority:</strong>
-                    {% if msg.ai_priority %}
-                        <span class="ppc-badge {{ msg.ai_priority|lower }}">
-                            {{ msg.ai_priority }}
-                        </span>
-                    {% else %}
-                        Not analyzed
-                    {% endif %}
-                </p>
-
+                <p><strong>Priority:</strong> {{ msg.ai_priority or "Not analyzed" }}</p>
                 <p><strong>Category:</strong> {{ msg.ai_category or "Not analyzed" }}</p>
                 <p><strong>Action:</strong> {{ msg.ai_action or "Not analyzed" }}</p>
             </div>
 
             <div class="ppc-actions">
-                <a href="{{ url_for('main.mark_lead_read', lead_id=msg.id) }}">Mark Read</a>
+                {% if msg.is_read %}
+                    <a href="{{ url_for('main.mark_lead_unread', lead_id=msg.id) }}">Mark Unread</a>
+                {% else %}
+                    <a href="{{ url_for('main.mark_lead_read', lead_id=msg.id) }}">Mark Read</a>
+                {% endif %}
+
                 <a href="{{ url_for('main.update_lead_status', lead_id=msg.id, status='new') }}">New</a>
                 <a href="{{ url_for('main.update_lead_status', lead_id=msg.id, status='progress') }}">In Progress</a>
                 <a href="{{ url_for('main.update_lead_status', lead_id=msg.id, status='closed') }}">Closed</a>
@@ -123,5 +189,18 @@
     </div>
 
 </section>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".admin-direct-card").forEach(function (card) {
+        card.addEventListener("click", function () {
+            const url = card.getAttribute("data-url");
+            if (url) {
+                window.location.href = url;
+            }
+        });
+    });
+});
+</script>
 
 {% endblock %}

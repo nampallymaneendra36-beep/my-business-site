@@ -12,11 +12,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True)
     password_hash = db.Column(db.String(200))
 
-    # Old admin flag kept for compatibility
     is_admin = db.Column(db.Boolean, default=False)
-
-    # New RBAC role
-    # Values: "user", "analyst", "admin"
     role = db.Column(db.String(20), default="user")
 
     def set_password(self, password):
@@ -62,6 +58,12 @@ class SecurityEvent(db.Model):
     attack_type = db.Column(db.String(100))
     payload = db.Column(db.Text)
 
+    country = db.Column(db.String(120), default="Unknown")
+    city = db.Column(db.String(120), default="")
+    lat = db.Column(db.Float, default=20.5937)
+    lon = db.Column(db.Float, default=78.9629)
+    source_type = db.Column(db.String(50), default="External")
+
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -72,3 +74,19 @@ class BlockedIP(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     ip_address = db.Column(db.String(100), unique=True)
     blocked_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class LoginAudit(db.Model):
+    __tablename__ = "login_audit"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id = db.Column(db.Integer)
+    email = db.Column(db.String(120))
+
+    ip_address = db.Column(db.String(100))
+    user_agent = db.Column(db.Text)
+
+    status = db.Column(db.String(20))  # SUCCESS / FAILED / LOGOUT
+
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)

@@ -19,14 +19,21 @@
         <li><a href="{{ url_for('contact.contact') }}">Contact</a></li>
 
         {% if current_user.is_authenticated %}
-            <li><a href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
 
             {% if current_user.is_admin %}
+                <li><a href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
+                <li><a href="{{ url_for('main.manage_users') }}">Users</a></li>
+                <li><a href="{{ url_for('main.login_audit') }}">Login Logs</a></li>
+            {% endif %}
+
+            {% if current_user.has_role("admin", "analyst") %}
                 <li><a href="{{ url_for('main.soc_dashboard') }}">SOC</a></li>
+                <li><a href="{{ url_for('main.attack_history') }}">Attack History</a></li>
             {% endif %}
 
             <li><a href="{{ url_for('main.my_requests') }}">My Requests</a></li>
             <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
+
         {% else %}
             <li><a href="{{ url_for('auth.login') }}">Login</a></li>
         {% endif %}
@@ -35,7 +42,11 @@
 
 {% block content %}{% endblock %}
 
+<div id="ppc-toast-container" class="ppc-toast-container"></div>
+
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
 <script>
     AOS.init({
         duration: 900,
@@ -68,6 +79,240 @@
         }
 
         addLine();
+    }
+
+    function safeText(value) {
+        return String(value || "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+    function animateCounter(counter, target) {
+        const currentText = String(counter.textContent || "0").replace(/,/g, "");
+        let current = Number(currentText) || 0;
+        target = Number(target) || 0;
+
+        if (current === target) {
+            counter.textContent = target.toLocaleString();
+            return;
+        }
+
+        const difference = target - current;
+        const steps = 45;
+        const increment = difference / steps;
+        let step = 0;
+
+        function update() {
+            step++;
+            current += increment;
+
+            if (step >= steps) {
+                counter.textContent = target.toLocaleString();
+            } else {
+                counter.textContent = Math.max(0, Math.round(current)).toLocaleString();
+                requestAnimationFrame(update);
+            }
+        }
+
+        update();
+    }
+
+    function updateCountersFromEvents(events) {
+        const counters = document.querySelectorAll(".counter");
+        if (!counters.length) return;
+
+        const totalEvents = events.length;
+        const uniqueIps = new Set(events.map(event => event.ip).filter(Boolean)).size;
+        const wafEvents = events.filter(event => event.attack).length;
+        const values = [totalEvents, uniqueIps, wafEvents];
+
+        counters.forEach((counter, index) => {
+            animateCounter(counter, values[index] || 0);
+        });
+    }
+
+    function resetMapHighlights() {
+        document.querySelectorAll(".node").forEach(node => {
+            node.classList.remove("attack-active");
+        });
+    }
+
+    function highlightNode(log) {
+        if (!log) return;
+
+        const country = String(log.country || log.geo_label || "").toLowerCase();
+        const ip = String(log.ip || "");
+        let selector = ".node-apac";
+
+        if (
+            country.includes("india") ||
+            country.includes("localhost") ||
+            ip.startsWith("103.") ||
+            ip.startsWith("49.") ||
+            ip.startsWith("14.")
+        ) {
+            selector = ".node-in";
+        } else if (
+            country.includes("united states") ||
+            country.includes("usa") ||
+            ip.startsWith("3.") ||
+            ip.startsWith("18.") ||
+            ip.startsWith("54.")
+        ) {
+            selector = ".node-us";
+        } else if (
+            country.includes("united kingdom") ||
+            country.includes("germany") ||
+            country.includes("france") ||
+            country.includes("netherlands") ||
+            country.includes("europe")
+        ) {
+            selector = ".node-eu";
+        } else if (country.includes("australia")) {
+            selector = ".node-au";
+        }
+
+        const node = document.querySelector(selector);
+
+        if (node) {
+            node.classList.add("attack-active");
+            setTimeout(() => node.classList.remove("attack-active"), 2500);
+        }
+    }
+
+    const threatFeed = document.getElementById("live-threat-feed");
+    let homepageEvents = [];
+
+    function renderHomepageThreatFeed(events) {
+        if (!threatFeed) return;
+
+        const latestEvents = Array.isArray(events) ? events.slice(0, 6) : [];
+
+        updateCountersFromEvents(events || []);
+        resetMapHighlights();
+        threatFeed.innerHTML = "";
+
+        if (!latestEvents.length) {
+            const emptyRow = document.createElement("p");
+            emptyRow.className = "live-log-row muted-log";
+            emptyRow.innerHTML = "<span>READY</span> Waiting for real WAF events";
+            threatFeed.appendChild(emptyRow);
+            return;
+        }
+
+        latestEvents.forEach(log => {
+            const row = document.createElement("p");
+            row.className = "live-log-row";
+
+            const attack = safeText(log.attack || "EVENT");
+            const ip = safeText(log.ip || "Unknown IP");
+            const path = safeText(log.path || "/");
+            const country = safeText(log.country || log.geo_label || "Unknown");
+
+            row.innerHTML = `<span>${attack}</span> ${ip} → ${path} <small>${country}</small>`;
+
+            threatFeed.appendChild(row);
+            highlightNode(log);
+        });
+    }
+
+    async function fetchInitialHomepageLogs() {
+        if (!threatFeed) return;
+
+        try {
+            const response = await fetch("/api/soc-data", { cache: "no-store" });
+            if (!response.ok) throw new Error("API returned " + response.status);
+
+            const events = await response.json();
+            homepageEvents = Array.isArray(events) ? events : [];
+            renderHomepageThreatFeed(homepageEvents);
+        } catch (error) {
+            console.log("Error loading real SOC logs:", error);
+            threatFeed.innerHTML = "";
+
+            const errorRow = document.createElement("p");
+            errorRow.className = "live-log-row muted-log";
+            errorRow.innerHTML = "<span>API</span> Unable to load live SOC data";
+            threatFeed.appendChild(errorRow);
+        }
+    }
+
+    fetchInitialHomepageLogs();
+
+    function showSecurityToast(event) {
+        const container = document.getElementById("ppc-toast-container");
+        if (!container || !event) return;
+
+        const toast = document.createElement("div");
+        toast.className = "ppc-toast";
+
+        toast.innerHTML = `
+            <strong>🚨 ${safeText(event.attack || "Security Event")}</strong>
+            <span>${safeText(event.ip || "Unknown IP")} → ${safeText(event.path || "/")}</span>
+            <small>${safeText(event.country || "Unknown")}</small>
+        `;
+
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.remove();
+        }, 4500);
+    }
+
+    function playAlertSound() {
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = 880;
+            oscillator.type = "sine";
+
+            gainNode.gain.setValueAtTime(0.05, audioContext.currentTime);
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.15);
+        } catch (error) {
+            console.log("Sound blocked by browser:", error);
+        }
+    }
+
+    if (typeof io !== "undefined") {
+        const socket = io();
+
+        socket.on("connect", () => {
+            console.log("Live SOC socket connected");
+        });
+
+        socket.on("soc_snapshot", events => {
+            if (Array.isArray(events)) {
+                homepageEvents = events;
+                renderHomepageThreatFeed(homepageEvents);
+
+                if (typeof window.updateSOCDashboard === "function") {
+                    window.updateSOCDashboard(events);
+                }
+            }
+        });
+
+        socket.on("new_security_event", event => {
+            if (event) {
+                homepageEvents = [event, ...homepageEvents].slice(0, 50);
+                renderHomepageThreatFeed(homepageEvents);
+
+                showSecurityToast(event);
+                playAlertSound();
+
+                if (typeof window.addLiveSOCEvent === "function") {
+                    window.addLiveSOCEvent(event);
+                }
+            }
+        });
     }
 </script>
 

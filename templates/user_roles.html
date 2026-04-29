@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}User Roles | Pure Prosperity Cyber{% endblock %}
+
+{% block content %}
+
+<style>
+.role-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.role-form {
+    display: inline-block;
+    margin: 0;
+}
+
+.role-btn {
+    border: none;
+    background: #2563eb;
+    color: #ffffff;
+    padding: 9px 14px;
+    border-radius: 8px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.role-btn:hover {
+    background: #1d4ed8;
+}
+
+.role-btn.admin {
+    background: #dc2626;
+}
+
+.role-btn.admin:hover {
+    background: #b91c1c;
+}
+</style>
+
+<section class="ppc-admin">
+    <div class="ppc-admin-header">
+        <div>
+            <h1>👥 User Role Management</h1>
+            <p>Manage access for users, SOC analysts, and admins.</p>
+        </div>
+    </div>
+
+    {% with messages_flash = get_flashed_messages() %}
+        {% if messages_flash %}
+            <div class="success-msg">{{ messages_flash[0] }}</div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="soc-table-box">
+        <table class="soc-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Current Role</th>
+                    <th>Admin Flag</th>
+                    <th>Change Role</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td>{{ u.id }}</td>
+                    <td>{{ u.username }}</td>
+                    <td>{{ u.email }}</td>
+
+                    <td>
+                        <span class="soc-badge">{{ u.role }}</span>
+                    </td>
+
+                    <td>
+                        {% if u.is_admin %}
+                            <span class="severity critical">Admin</span>
+                        {% else %}
+                            <span class="severity medium">No</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        <div class="role-actions">
+                            <form class="role-form" action="{{ url_for('main.set_role', user_id=u.id, role='user') }}" method="POST">
+                                <button type="submit" class="role-btn">User</button>
+                            </form>
+
+                            <form class="role-form" action="{{ url_for('main.set_role', user_id=u.id, role='analyst') }}" method="POST">
+                                <button type="submit" class="role-btn">Analyst</button>
+                            </form>
+
+                            <form class="role-form" action="{{ url_for('main.set_role', user_id=u.id, role='admin') }}" method="POST">
+                                <button type="submit" class="role-btn admin">Admin</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="empty-text">No users found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

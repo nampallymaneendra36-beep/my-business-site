@@ -1,9 +1,9 @@
 import os
-from flask import Blueprint, render_template, abort, redirect, url_for, flash, request
+from flask import Blueprint, render_template, abort, redirect, url_for, flash, request, Response
 from flask_login import login_required, current_user
-from sqlalchemy import text
+from sqlalchemy import text, func
 from extensions import db
-from models import ContactMessage, User, SecurityEvent, BlockedIP
+from models import ContactMessage, User, SecurityEvent, BlockedIP, LoginAudit
 
 main_bp = Blueprint("main", __name__)
 
@@ -30,11 +30,13 @@ def dashboard():
     if not current_user.is_admin:
         return redirect(url_for("main.my_requests"))
 
-    status_filter = request.args.get("status", "All")
+    status_filter = request.args.get("status", "All").strip()
     query = ContactMessage.query
 
     if status_filter in ["New", "In Progress", "Closed"]:
-        query = query.filter_by(status=status_filter)
+        query = query.filter(
+            func.lower(func.trim(ContactMessage.status)) == status_filter.lower()
+        )
 
     query = query.order_by(
         db.case(
@@ -54,69 +56,69 @@ def dashboard():
         status_filter=status_filter,
         total_users=User.query.count(),
         total_leads=ContactMessage.query.count(),
-        new_leads=ContactMessage.query.filter(ContactMessage.status == "New").count(),
-        progress_leads=ContactMessage.query.filter(ContactMessage.status == "In Progress").count(),
-        closed_leads=ContactMessage.query.filter(ContactMessage.status == "Closed").count()
+        new_leads=ContactMessage.query.filter(
+            func.lower(func.trim(ContactMessage.status)) == "new"
+        ).count(),
+        progress_leads=ContactMessage.query.filter(
+            func.lower(func.trim(ContactMessage.status)) == "in progress"
+        ).count(),
+        closed_leads=ContactMessage.query.filter(
+            func.lower(func.trim(ContactMessage.status)) == "closed"
+        ).count()
     )
 
 
-def get_geo_info(ip):
-    if not ip:
-        return "Unknown", "Unknown"
+@main_bp.route("/admin/login-audit")
+@login_required
+def login_audit():
+    if not current_user.is_admin:
+        abort(403)
+
+    logs = LoginAudit.query.order_by(LoginAudit.timestamp.desc()).limit(200).all()
+    return render_template("login_audit.html", logs=logs)
+
+
+def get_geo_info(event):
+    country = getattr(event, "country", None) or "Unknown"
+    city = getattr(event, "city", None) or ""
+    source_type = getattr(event, "source_type", None) or "External"
+    ip = event.ip_address or ""
 
     if ip.startswith("127.") or ip == "::1" or ip.startswith("192.168.") or ip.startswith("10."):
-        return "Localhost", "Internal"
+        country = "Localhost"
+        city = "Internal"
+        source_type = "Internal"
 
-    return "Unknown", "External"
+    return country, city, source_type
 
 
 def analyze_threat(event):
     payload = str(event.payload or "").lower()
     attack = str(event.attack_type or "").lower()
 
-    score = 0
-    category = "Unknown"
-    action = "Monitor"
+    score = 40
+    category = "Suspicious Activity"
+    action = "Monitor traffic and review logs"
 
-    if "javascript" in payload or "<script" in payload or "alert" in payload or "onerror" in payload:
+    if "javascript" in payload or "<script" in payload or "alert" in payload or "onerror" in payload or attack == "xss":
         score = 90
         category = "Cross-Site Scripting (XSS)"
         action = "Block IP, sanitize input, review affected page"
 
-    elif "union" in payload or "or 1=1" in payload or "drop table" in payload:
+    elif "union" in payload or "or 1=1" in payload or "drop table" in payload or attack == "sqli":
         score = 85
         category = "SQL Injection"
         action = "Block IP, review database logs, validate parameterized queries"
 
-    elif "cmd=" in payload or "powershell" in payload or "curl" in payload or "wget" in payload:
+    elif "cmd=" in payload or "powershell" in payload or "curl" in payload or "wget" in payload or attack == "command injection":
         score = 80
         category = "Command Injection"
         action = "Block IP, isolate host, review command execution paths"
 
-    elif "../" in payload or "..\\" in payload or "etc/passwd" in payload:
+    elif "../" in payload or "..\\" in payload or "etc/passwd" in payload or attack == "traversal":
         score = 70
         category = "Path Traversal"
         action = "Block IP, check file access logs, validate path handling"
-
-    elif attack == "xss":
-        score = 75
-        category = "Cross-Site Scripting (XSS)"
-        action = "Review payload and sanitize user input"
-
-    elif attack == "sqli":
-        score = 80
-        category = "SQL Injection"
-        action = "Review database access and input validation"
-
-    elif attack == "command injection":
-        score = 80
-        category = "Command Injection"
-        action = "Review server command execution risk"
-
-    else:
-        score = 40
-        category = "Suspicious Activity"
-        action = "Monitor traffic and review logs"
 
     if score >= 85:
         severity = "Critical"
@@ -130,14 +132,34 @@ def analyze_threat(event):
     return severity, score, category, action
 
 
+def format_event(event):
+    country, city, source_type = get_geo_info(event)
+    severity, score, category, action = analyze_threat(event)
+
+    return {
+        "time": event.timestamp,
+        "ip": event.ip_address,
+        "method": event.method,
+        "path": event.path,
+        "attack": event.attack_type,
+        "payload": event.payload,
+        "severity": severity,
+        "score": score,
+        "category": category,
+        "action": action,
+        "country": country,
+        "city": city,
+        "source_type": source_type
+    }
+
+
 @main_bp.route("/soc")
 @login_required
 def soc_dashboard():
-    if not current_user.is_admin:
+    if not current_user.has_role("admin", "analyst"):
         abort(403)
 
     search = request.args.get("search", "").strip().lower()
-
     all_events = SecurityEvent.query.order_by(SecurityEvent.timestamp.desc()).all()
     blocked_ips = BlockedIP.query.order_by(BlockedIP.blocked_at.desc()).all()
 
@@ -149,27 +171,13 @@ def soc_dashboard():
             str(event.attack_type or ""),
             str(event.path or ""),
             str(event.method or ""),
-            str(event.payload or "")
+            str(event.payload or ""),
+            str(getattr(event, "country", "") or ""),
+            str(getattr(event, "city", "") or "")
         ]).lower()
 
         if not search or search in combined:
-            country, source_type = get_geo_info(event.ip_address)
-            severity, score, category, action = analyze_threat(event)
-
-            filtered_events.append({
-                "time": event.timestamp,
-                "ip": event.ip_address,
-                "method": event.method,
-                "path": event.path,
-                "attack": event.attack_type,
-                "payload": event.payload,
-                "severity": severity,
-                "score": score,
-                "category": category,
-                "action": action,
-                "country": country,
-                "source_type": source_type
-            })
+            filtered_events.append(format_event(event))
 
     xss_count = len([e for e in all_events if e.attack_type == "XSS"])
     sqli_count = len([e for e in all_events if e.attack_type == "SQLi"])
@@ -204,10 +212,161 @@ def soc_dashboard():
     )
 
 
+@main_bp.route("/soc/history")
+@login_required
+def attack_history():
+    if not current_user.has_role("admin", "analyst"):
+        abort(403)
+
+    search = request.args.get("search", "").strip()
+    ip_filter = request.args.get("ip", "").strip()
+    attack_filter = request.args.get("attack", "").strip()
+    severity_filter = request.args.get("severity", "").strip()
+    start_filter = request.args.get("start", "").strip()
+    end_filter = request.args.get("end", "").strip()
+
+    events = SecurityEvent.query.order_by(SecurityEvent.timestamp.desc()).all()
+    history = []
+
+    for event in events:
+        formatted = format_event(event)
+
+        combined = " ".join([
+            str(formatted["ip"] or ""),
+            str(formatted["attack"] or ""),
+            str(formatted["path"] or ""),
+            str(formatted["method"] or ""),
+            str(formatted["payload"] or ""),
+            str(formatted["country"] or ""),
+            str(formatted["city"] or ""),
+            str(formatted["severity"] or "")
+        ]).lower()
+
+        if search and search.lower() not in combined:
+            continue
+
+        if ip_filter and ip_filter not in str(formatted["ip"] or ""):
+            continue
+
+        if attack_filter and attack_filter != formatted["attack"]:
+            continue
+
+        if severity_filter and severity_filter != formatted["severity"]:
+            continue
+
+        event_date = event.timestamp.strftime("%Y-%m-%d") if event.timestamp else ""
+
+        if start_filter and event_date < start_filter:
+            continue
+
+        if end_filter and event_date > end_filter:
+            continue
+
+        history.append(formatted)
+
+    attack_types = sorted(list(set([e.attack_type for e in events if e.attack_type])))
+
+    return render_template(
+        "attack_history.html",
+        events=history,
+        filters={
+            "search": search,
+            "ip": ip_filter,
+            "attack": attack_filter,
+            "severity": severity_filter,
+            "start": start_filter,
+            "end": end_filter
+        },
+        attack_types=attack_types
+    )
+
+
+@main_bp.route("/soc/history/export")
+@login_required
+def export_attack_history():
+    if not current_user.has_role("admin", "analyst"):
+        abort(403)
+
+    events = SecurityEvent.query.order_by(SecurityEvent.timestamp.desc()).all()
+
+    csv_data = "Time,IP,Country,City,Source,Method,Path,Attack,Severity,Score,Category,Action,Payload\n"
+
+    for event in events:
+        formatted = format_event(event)
+        time_value = event.timestamp.strftime("%Y-%m-%d %H:%M:%S") if event.timestamp else ""
+
+        row = [
+            time_value,
+            str(formatted["ip"] or ""),
+            str(formatted["country"] or ""),
+            str(formatted["city"] or ""),
+            str(formatted["source_type"] or ""),
+            str(formatted["method"] or ""),
+            str(formatted["path"] or ""),
+            str(formatted["attack"] or ""),
+            str(formatted["severity"] or ""),
+            str(formatted["score"] or ""),
+            str(formatted["category"] or ""),
+            str(formatted["action"] or ""),
+            str(formatted["payload"] or "").replace("\n", " ").replace(",", " ")
+        ]
+
+        csv_data += ",".join(row) + "\n"
+
+    return Response(
+        csv_data,
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=attack_history.csv"}
+    )
+
+
+@main_bp.route("/admin/users")
+@login_required
+def manage_users():
+    if not current_user.is_admin:
+        abort(403)
+
+    users = User.query.order_by(User.id.asc()).all()
+    return render_template("user_roles.html", users=users)
+
+
+@main_bp.route("/admin/set-role/<int:user_id>/<role>", methods=["POST"])
+@login_required
+def set_role(user_id, role):
+    if not current_user.is_admin:
+        abort(403)
+
+    allowed_roles = ["user", "analyst", "admin"]
+
+    if role not in allowed_roles:
+        abort(404)
+
+    user = User.query.get_or_404(user_id)
+
+    if user.id == current_user.id and role != "admin":
+        flash("You cannot downgrade your own admin role.", "error")
+        return redirect(url_for("main.manage_users"))
+
+    if user.is_admin and role != "admin":
+        admin_count = User.query.filter_by(is_admin=True).count()
+
+        if admin_count <= 1:
+            flash("At least one admin must exist.", "error")
+            return redirect(url_for("main.manage_users"))
+
+    user.role = role
+    user.is_admin = True if role == "admin" else False
+
+    db.session.commit()
+
+    flash(f"{user.username} role updated to {role}.", "success")
+    return redirect(url_for("main.manage_users"))
+
+
 @main_bp.route("/unblock/<ip>")
 @login_required
 def unblock_ip(ip):
-    if not current_user.is_admin:
+    if not current_user.has_role("admin", "analyst"):
         abort(403)
 
     blocked_ip = BlockedIP.query.filter_by(ip_address=ip).first()
@@ -241,6 +400,20 @@ def mark_lead_read(lead_id):
     db.session.commit()
 
     flash("Lead marked as read.", "success")
+    return redirect(url_for("main.dashboard"))
+
+
+@main_bp.route("/lead/<int:lead_id>/unread")
+@login_required
+def mark_lead_unread(lead_id):
+    if not current_user.is_admin:
+        abort(403)
+
+    lead = ContactMessage.query.get_or_404(lead_id)
+    lead.is_read = False
+    db.session.commit()
+
+    flash("Lead marked as unread.", "success")
     return redirect(url_for("main.dashboard"))
 
 

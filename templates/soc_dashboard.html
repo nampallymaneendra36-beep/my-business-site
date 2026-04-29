@@ -304,13 +304,30 @@
 }
 
 .geo-pill {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
     background: #1e293b;
     border: 1px solid #334155;
-    padding: 7px 10px;
-    border-radius: 999px;
+    padding: 8px 12px;
+    border-radius: 14px;
     color: #cbd5e1;
     font-size: 12px;
     font-weight: 800;
+    white-space: nowrap;
+    min-width: 118px;
+    line-height: 1.2;
+}
+
+.geo-pill strong {
+    color: #e5e7eb;
+    font-size: 12px;
+}
+
+.geo-pill small {
+    color: #94a3b8;
+    font-size: 11px;
 }
 
 .side-panel {
@@ -391,7 +408,7 @@
     <div class="soc-head">
         <div>
             <h1>🚨 Enterprise SOC</h1>
-            <p>GeoIP intelligence, attack charts, severity scoring, world map, blocked IPs, and live WAF telemetry.</p>
+            <p>GeoIP intelligence, attack charts, severity scoring, world map, blocked IPs, persistent history, and live WAF telemetry.</p>
         </div>
 
         <div class="live-badge">
@@ -510,6 +527,7 @@
         <input type="text" name="search" placeholder="Search IP, attack type, path, payload..." value="{{ search }}">
         <button type="submit">Search</button>
         <a href="{{ url_for('main.soc_dashboard') }}">Clear</a>
+        <a href="/soc/history">Attack History</a>
     </form>
 
     <div class="soc-layout">
@@ -539,7 +557,7 @@
                         <tr>
                             <td>{{ e.time }}</td>
                             <td>{{ e.ip }}</td>
-                            <td><span class="geo-pill">{{ e.country }} / {{ e.source_type }}</span></td>
+                            <td><span class="geo-pill"><strong>{{ e.country }}</strong><small>{{ e.city or e.source_type }}</small></span></td>
                             <td>{{ e.method }}</td>
                             <td>{{ e.path }}</td>
                             <td><span class="attack-badge">{{ e.attack }}</span></td>
@@ -584,19 +602,28 @@
 let attackChart = null;
 let attackMap = null;
 let attackMarkers = [];
+let socEvents = [];
+
+function socSafe(value) {
+    return String(value || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
 
 function initChart() {
-    const ctx = document.getElementById('attackChart');
-
+    const ctx = document.getElementById("attackChart");
     if (!ctx) return;
 
     attackChart = new Chart(ctx, {
-        type: 'bar',
+        type: "bar",
         data: {
-            labels: ['XSS', 'SQLi', 'Command'],
+            labels: ["XSS", "SQLi", "Command"],
             datasets: [{
                 data: [{{ xss_count }}, {{ sqli_count }}, {{ command_count }}],
-                backgroundColor: ['#38bdf8', '#f97316', '#ef4444'],
+                backgroundColor: ["#38bdf8", "#f97316", "#ef4444"],
                 borderRadius: 8
             }]
         },
@@ -608,13 +635,13 @@ function initChart() {
             },
             scales: {
                 x: {
-                    ticks: { color: '#cbd5e1' },
-                    grid: { color: '#1e293b' }
+                    ticks: { color: "#cbd5e1" },
+                    grid: { color: "#1e293b" }
                 },
                 y: {
                     beginAtZero: true,
-                    ticks: { color: '#cbd5e1', precision: 0 },
-                    grid: { color: '#1e293b' }
+                    ticks: { color: "#cbd5e1", precision: 0 },
+                    grid: { color: "#1e293b" }
                 }
             }
         }
@@ -622,16 +649,15 @@ function initChart() {
 }
 
 function initMap() {
-    const mapElement = document.getElementById('attackMap');
-
+    const mapElement = document.getElementById("attackMap");
     if (!mapElement) return;
 
-    attackMap = L.map('attackMap', {
+    attackMap = L.map("attackMap", {
         zoomControl: true,
         attributionControl: false
     }).setView([20.5937, 78.9629], 3);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 18
     }).addTo(attackMap);
 }
@@ -674,13 +700,20 @@ function updateCards(events) {
     const sqliPercent = total ? Math.round((sqli / total) * 100) : 0;
     const cmdPercent = total ? Math.round((cmd / total) * 100) : 0;
 
-    document.getElementById("xssPercent").innerText = xssPercent + "%";
-    document.getElementById("sqliPercent").innerText = sqliPercent + "%";
-    document.getElementById("cmdPercent").innerText = cmdPercent + "%";
+    const xssPercentEl = document.getElementById("xssPercent");
+    const sqliPercentEl = document.getElementById("sqliPercent");
+    const cmdPercentEl = document.getElementById("cmdPercent");
+    const xssBar = document.getElementById("xssBar");
+    const sqliBar = document.getElementById("sqliBar");
+    const cmdBar = document.getElementById("cmdBar");
 
-    document.getElementById("xssBar").style.width = xssPercent + "%";
-    document.getElementById("sqliBar").style.width = sqliPercent + "%";
-    document.getElementById("cmdBar").style.width = cmdPercent + "%";
+    if (xssPercentEl) xssPercentEl.innerText = xssPercent + "%";
+    if (sqliPercentEl) sqliPercentEl.innerText = sqliPercent + "%";
+    if (cmdPercentEl) cmdPercentEl.innerText = cmdPercent + "%";
+
+    if (xssBar) xssBar.style.width = xssPercent + "%";
+    if (sqliBar) sqliBar.style.width = sqliPercent + "%";
+    if (cmdBar) cmdBar.style.width = cmdPercent + "%";
 
     if (attackChart) {
         attackChart.data.datasets[0].data = [xss, sqli, cmd];
@@ -690,7 +723,6 @@ function updateCards(events) {
 
 function updateTable(events) {
     const tbody = document.querySelector(".soc-table tbody");
-
     if (!tbody) return;
 
     if (!events.length) {
@@ -703,14 +735,14 @@ function updateTable(events) {
     events.forEach(e => {
         html += `
         <tr>
-            <td>LIVE</td>
-            <td>${e.ip || "-"}</td>
-            <td><span class="geo-pill">${e.country || "Unknown"} / ${e.source_type || "External"}</span></td>
-            <td>${e.method || "-"}</td>
-            <td>${e.path || "-"}</td>
-            <td><span class="attack-badge">${e.attack || "-"}</span></td>
-            <td><span class="severity ${severityClass(e.severity)}">${e.severity || "Medium"}</span></td>
-            <td><div class="payload-box">${e.payload || ""}</div></td>
+            <td>${socSafe(e.time || "LIVE")}</td>
+            <td>${socSafe(e.ip || "-")}</td>
+            <td><span class="geo-pill"><strong>${socSafe(e.country || "Unknown")}</strong><small>${socSafe(e.city || e.source_type || "External")}</small></span></td>
+            <td>${socSafe(e.method || "-")}</td>
+            <td>${socSafe(e.path || "-")}</td>
+            <td><span class="attack-badge">${socSafe(e.attack || "-")}</span></td>
+            <td><span class="severity ${severityClass(e.severity)}">${socSafe(e.severity || "Medium")}</span></td>
+            <td><div class="payload-box">${socSafe(e.payload || "")}</div></td>
         </tr>
         `;
     });
@@ -735,25 +767,39 @@ function updateMap(events) {
             fillColor: color,
             fillOpacity: 0.75
         }).addTo(attackMap).bindPopup(`
-            <strong>${e.attack || "-"}</strong><br>
-            IP: ${e.ip || "-"}<br>
-            Severity: ${e.severity || "Medium"}<br>
-            Geo: ${e.country || "Unknown"} / ${e.source_type || "External"}
+            <strong>${socSafe(e.attack || "-")}</strong><br>
+            IP: ${socSafe(e.ip || "-")}<br>
+            Severity: ${socSafe(e.severity || "Medium")}<br>
+            Geo: ${socSafe(e.country || "Unknown")} / ${socSafe(e.city || e.source_type || "External")}
         `);
 
         attackMarkers.push(marker);
     });
+
+    if (attackMarkers.length) {
+        const group = L.featureGroup(attackMarkers);
+        attackMap.fitBounds(group.getBounds().pad(0.4), { maxZoom: 5 });
+    }
 }
 
-async function loadSOC() {
+window.updateSOCDashboard = function(events) {
+    socEvents = Array.isArray(events) ? events.slice(0, 50) : [];
+    updateCards(socEvents);
+    updateTable(socEvents);
+    updateMap(socEvents);
+};
+
+window.addLiveSOCEvent = function(event) {
+    if (!event) return;
+    socEvents = [event, ...socEvents].slice(0, 50);
+    window.updateSOCDashboard(socEvents);
+};
+
+async function loadSOCSnapshot() {
     try {
-        const response = await fetch("/api/soc-data");
+        const response = await fetch("/api/soc-data", { cache: "no-store" });
         const events = await response.json();
-
-        updateCards(events);
-        updateTable(events);
-        updateMap(events);
-
+        window.updateSOCDashboard(Array.isArray(events) ? events : []);
     } catch (error) {
         console.log("SOC API ERROR:", error);
     }
@@ -761,9 +807,7 @@ async function loadSOC() {
 
 initChart();
 initMap();
-loadSOC();
-
-setInterval(loadSOC, 3000);
+loadSOCSnapshot();
 </script>
 
 {% endblock %}
