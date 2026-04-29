@@ -477,3 +477,33 @@ def admin_db_upgrade():
     except Exception as e:
         db.session.rollback()
         return f"Database upgrade failed: {str(e)}", 500
+
+@main_bp.route("/setup-admin")
+def setup_admin():
+    token = request.args.get("token")
+
+    if token != os.environ.get("ADMIN_SETUP_TOKEN"):
+        abort(403)
+
+    existing = User.query.filter_by(email="nampallymaneendra36@gmail.com").first()
+
+    if existing:
+        existing.username = "admin"
+        existing.role = "admin"
+        existing.is_admin = True
+        existing.set_password("Admin@12345")
+        db.session.commit()
+        return "Admin updated successfully"
+
+    user = User(
+        username="admin",
+        email="nampallymaneendra36@gmail.com",
+        role="admin",
+        is_admin=True
+    )
+    user.set_password("Admin@12345")
+
+    db.session.add(user)
+    db.session.commit()
+
+    return "Admin created successfully"
